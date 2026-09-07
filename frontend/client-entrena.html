@@ -270,30 +270,67 @@
     .ws-rpe.vacio{color:#9CA3AF;}
     .ws-set.done .ws-rpe{background:#ECFDF5;border-color:#A7F3D0;}
 
-    .fin-back{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);z-index:1200;}
-    .fin-back.open{display:flex;align-items:center;justify-content:center;padding:20px;}
-    .fin{background:#fff;border-radius:20px;width:100%;max-width:380px;padding:28px 24px 20px;text-align:center;
-      box-shadow:0 24px 64px rgba(0,0,0,.3);}
-    .fin-ok{width:52px;height:52px;border-radius:50%;background:#ECFDF5;color:#059669;
-      display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
-    .fin h3{font-size:19px;font-weight:800;color:#111827;margin-bottom:5px;}
-    .fin-sub{font-size:13.5px;color:#6B7280;margin-bottom:20px;}
-    .fin-sub b{color:#111827;font-variant-numeric:tabular-nums;}
-    .fin-q{font-size:13px;font-weight:600;color:#374151;margin-bottom:12px;}
-    .fin-caras{display:flex;justify-content:center;gap:8px;margin-bottom:6px;}
-    .fin-cara{width:52px;height:52px;border-radius:14px;border:1.5px solid #E5E7EB;background:#fff;
-      font-size:25px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;
-      transition:.15s;padding:0;}
-    .fin-cara:hover{border-color:#C7D2FE;transform:translateY(-2px);}
-    .fin-cara.sel{border-color:#4F46E5;background:#EEF2FF;transform:translateY(-2px);}
+    /* ── La pantalla de fin ────────────────────────────────────────────────
+       Ocupa la pantalla entera, no una ventanita: es el momento en que se
+       cierra la sesión y lo que hay que enseñar es lo que acaba de hacer.
+       Antes solo se le preguntaba cómo se había sentido, sobre un fondo gris
+       en el que no se veía nada de su entreno. */
+    .fin-back{display:none;position:fixed;inset:0;background:var(--gray-bg,#F8FAFC);z-index:1200;
+      overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .fin-back.open{display:block;}
+    .fin{width:100%;max-width:440px;margin:0 auto;
+      padding:26px 18px calc(26px + env(safe-area-inset-bottom));}
+    .fin-emoji{font-size:54px;line-height:1;text-align:center;margin-bottom:12px;}
+    .fin h3{font-size:23px;font-weight:800;color:#111827;text-align:center;margin-bottom:4px;}
+    .fin-dia{font-size:14px;color:#6B7280;text-align:center;margin-bottom:22px;}
+
+    /* Las cuatro cifras de la sesión. Dos por fila también en pantallas
+       estrechas, que es donde se entrena. */
+    .fin-cifras{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+    .fin-cifra{background:#fff;border-radius:16px;padding:16px 10px;text-align:center;
+      box-shadow:0 1px 3px rgba(17,24,39,.06);}
+    .fin-cifra .ic{font-size:22px;line-height:1;margin-bottom:8px;}
+    .fin-cifra .v{font-size:20px;font-weight:800;color:#111827;line-height:1.1;
+      font-variant-numeric:tabular-nums;}
+    .fin-cifra .l{font-size:12px;color:#6B7280;margin-top:3px;}
+
+    .fin-caja{background:#fff;border-radius:16px;padding:18px 16px;margin-bottom:16px;
+      box-shadow:0 1px 3px rgba(17,24,39,.06);}
+    .fin-caja > h4{font-size:15px;font-weight:800;color:#111827;margin-bottom:16px;}
+    .fin-preg{margin-bottom:18px;}
+    .fin-preg:last-child{margin-bottom:0;}
+    .fin-preg-cab{display:flex;align-items:baseline;gap:6px;}
+    .fin-preg-t{font-size:14px;font-weight:700;color:#111827;flex:1;min-width:0;}
+    /* La nota de al lado del número: "/10" en pequeño para que el número mande. */
+    .fin-preg-v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;color:#D1D5DB;}
+    .fin-preg-v small{font-size:12px;font-weight:700;color:#9CA3AF;}
+    .fin-preg-v.puesto{color:var(--fin-c);}
+    .fin-preg-s{font-size:12px;color:#6B7280;margin:2px 0 10px;}
+    .fin-esc{display:grid;grid-template-columns:repeat(10,1fr);gap:5px;}
+    .fin-n{aspect-ratio:1;border:none;border-radius:8px;background:#F3F4F6;color:#9CA3AF;
+      font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;padding:0;
+      display:flex;align-items:center;justify-content:center;transition:.12s;}
+    .fin-n:hover{background:#E5E7EB;}
+    /* Se pintan TODOS los anteriores, no solo el elegido: la escala se lee de
+       un vistazo como un termómetro y no hay que buscar cuál está marcado. */
+    .fin-n.on{background:var(--fin-c);color:#fff;}
+    .fin-n:focus-visible{outline:2px solid #111827;outline-offset:2px;}
+
+    .fin-caras{display:flex;justify-content:space-between;gap:8px;}
+    .fin-cara{flex:1;aspect-ratio:1;max-width:56px;border-radius:12px;border:1.5px solid #E5E7EB;
+      background:#fff;font-size:24px;line-height:1;cursor:pointer;padding:0;
+      display:flex;align-items:center;justify-content:center;transition:.15s;}
+    .fin-cara:hover{border-color:#C7D2FE;}
+    .fin-cara.sel{border-color:#4F46E5;background:#EEF2FF;}
     .fin-cara:focus-visible{outline:2px solid #4F46E5;outline-offset:2px;}
-    .fin-opt{font-size:11.5px;color:#9CA3AF;margin-bottom:20px;}
-    .fin-botones{display:flex;gap:10px;}
-    .fin-b{flex:1;padding:13px 10px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;
-      font-family:inherit;border:1px solid #E5E7EB;background:#fff;color:#374151;}
-    .fin-b:hover{background:#F9FAFB;}
-    .fin-b.pri{background:#4F46E5;border-color:#4F46E5;color:#fff;}
-    .fin-b.pri:hover{background:#4338CA;}
+    .fin-opt{font-size:11.5px;color:#9CA3AF;text-align:center;margin-top:14px;}
+    .fin-b{width:100%;padding:15px 12px;border-radius:12px;font-size:15px;font-weight:800;
+      cursor:pointer;font-family:inherit;border:none;background:var(--green);color:#fff;}
+    .fin-b:hover{filter:brightness(.95);}
+    .fin-b[disabled]{opacity:.6;cursor:default;}
+    .fin-cancel{width:100%;margin-top:10px;padding:12px;border:none;background:none;
+      font-family:inherit;font-size:13.5px;font-weight:700;color:#6B7280;cursor:pointer;}
+    .fin-cancel:hover{color:#111827;}
   </style>
 <script src="js/org-context.js"></script>
 <script src="js/nav-roles.js"></script>
@@ -403,24 +440,55 @@
   </div>
 </div>
 
-<div class="fin-back" id="finBack" onclick="if(event.target===this)finCerrar(false)">
+<div class="fin-back" id="finBack">
   <div class="fin" role="dialog" aria-modal="true" aria-labelledby="finTitulo">
-    <div class="fin-ok"><svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div>
-    <h3 id="finTitulo">Entrenamiento terminado</h3>
-    <div class="fin-sub">Duración: <b id="finTiempo">—</b></div>
-    <div class="fin-q">¿Cómo te has sentido?</div>
-    <div class="fin-caras">
-      <button type="button" class="fin-cara" data-n="1" onclick="finCara(1)" aria-label="Fatal">😣</button>
-      <button type="button" class="fin-cara" data-n="2" onclick="finCara(2)" aria-label="Regular">😕</button>
-      <button type="button" class="fin-cara" data-n="3" onclick="finCara(3)" aria-label="Normal">😐</button>
-      <button type="button" class="fin-cara" data-n="4" onclick="finCara(4)" aria-label="Bien">🙂</button>
-      <button type="button" class="fin-cara" data-n="5" onclick="finCara(5)" aria-label="Genial">😄</button>
+    <div class="fin-emoji">💪</div>
+    <h3 id="finTitulo">¡Sesión terminada!</h3>
+    <div class="fin-dia" id="finDia"></div>
+
+    <div class="fin-cifras">
+      <div class="fin-cifra"><div class="ic">⏱️</div><div class="v" id="finTiempo">—</div><div class="l">Duración</div></div>
+      <div class="fin-cifra"><div class="ic">💪</div><div class="v" id="finSeries">—</div><div class="l">Series</div></div>
+      <div class="fin-cifra"><div class="ic">📊</div><div class="v" id="finVolumen">—</div><div class="l">Volumen</div></div>
+      <div class="fin-cifra"><div class="ic">🏆</div><div class="v" id="finRecords">—</div><div class="l">Récords</div></div>
     </div>
+
+    <div class="fin-caja">
+      <h4>Califica tu sesión</h4>
+
+      <div class="fin-preg" style="--fin-c:#F59E0B;">
+        <div class="fin-preg-cab">
+          <div class="fin-preg-t">🔋 ¿Cómo llegaste al entreno?</div>
+          <div class="fin-preg-v" id="finEnergiaV">—<small>/10</small></div>
+        </div>
+        <div class="fin-preg-s">Tus niveles de energía antes de empezar</div>
+        <div class="fin-esc" id="finEnergia"></div>
+      </div>
+
+      <div class="fin-preg" style="--fin-c:#22C55E;">
+        <div class="fin-preg-cab">
+          <div class="fin-preg-t">🔥 ¿Cuánto te esforzaste?</div>
+          <div class="fin-preg-v" id="finEsfuerzoV">—<small>/10</small></div>
+        </div>
+        <div class="fin-preg-s">Intensidad que pusiste durante la sesión</div>
+        <div class="fin-esc" id="finEsfuerzo"></div>
+      </div>
+    </div>
+
+    <div class="fin-caja">
+      <h4>¿Cómo te has sentido?</h4>
+      <div class="fin-caras">
+        <button type="button" class="fin-cara" data-n="1" onclick="finCara(1)" aria-label="Fatal">😣</button>
+        <button type="button" class="fin-cara" data-n="2" onclick="finCara(2)" aria-label="Regular">😕</button>
+        <button type="button" class="fin-cara" data-n="3" onclick="finCara(3)" aria-label="Normal">😐</button>
+        <button type="button" class="fin-cara" data-n="4" onclick="finCara(4)" aria-label="Bien">🙂</button>
+        <button type="button" class="fin-cara" data-n="5" onclick="finCara(5)" aria-label="Genial">😄</button>
+      </div>
+    </div>
+
+    <button class="fin-b" id="finGuardar" onclick="finCerrar(true)">Guardar y terminar</button>
     <div class="fin-opt">Puedes guardar sin responder</div>
-    <div class="fin-botones">
-      <button class="fin-b" onclick="finCerrar(false)">Cancelar</button>
-      <button class="fin-b pri" onclick="finCerrar(true)">Guardar entreno</button>
-    </div>
+    <button class="fin-cancel" onclick="finCerrar(false)">Volver a la sesión</button>
   </div>
 </div>
 
@@ -932,11 +1000,6 @@
     _ws.exercises.forEach(function(e){ e.sets.forEach(function(s){ if (s.done && s.rpe !== '' && !isNaN(parseFloat(s.rpe))) rpes.push(parseFloat(s.rpe)); }); });
     var avgRpe = rpes.length ? Math.round((rpes.reduce(function(a,b){return a+b;},0) / rpes.length) * 10) / 10 : null;
     var notes = _ws.exercises.filter(function(e){ return (e.note || '').trim(); }).map(function(e){ return e.name + ': ' + e.note.trim(); }).join(' | ') || null;
-    /* Antes era un `confirm` del navegador. Se cambia por una ventana propia
-       porque además de confirmar hay que preguntar cómo ha ido: el ánimo solo
-       se puede recoger aquí, recién terminado, y ningún dato lo sustituye. */
-    var animo = await _preguntarFin(elapsedSec);
-    if (animo === null) return;              // ha cancelado
     // Detalle: se guardan las series con algún dato (marcada, reps o kg)
     var num = function(v){ var n = parseFloat(String(v).replace(',', '.')); return isNaN(n) ? null : n; };
     var exercises = _ws.exercises.map(function(e){
@@ -950,9 +1013,20 @@
           .map(function(s){ return { reps: String(s.reps || '').trim() || null, weight: num(s.kg), rpe: num(s.rpe), done: !!s.done }; })
       };
     }).filter(function(e){ return e.sets.length || e.notes; });
+    /* Antes era un `confirm` del navegador, y luego una ventanita con cinco
+       caras. Ahora es la pantalla de fin: se le enseña lo que acaba de hacer y
+       se le pregunta por ello. Preguntarlo aquí es lo único que hace que se
+       conteste — media hora después nadie se acuerda de cómo llegó. */
+    var fin = await _preguntarFin(elapsedSec, exercises);
+    if (fin === null) return;              // ha vuelto a la sesión
+    /* El esfuerzo que dice el cliente manda sobre la media de los RPE de cada
+       serie: es la misma pregunta hecha a la persona en vez de deducida, y la
+       mayoría de las series se marcan sin RPE. Si no contesta, queda la media
+       de siempre. */
     var body = { routine_id: _ws.routineId, day_name: _ws.dayName || null,
-                 duration_min: durationMin, rpe: avgRpe,
-                 mood: animo || null, notes: notes, exercises: exercises };
+                 duration_min: durationMin, rpe: fin.esfuerzo || avgRpe,
+                 energy: fin.energia || null,
+                 mood: fin.animo || null, notes: notes, exercises: exercises };
     var btn = document.querySelector('.ws-terminar'); if (btn){ btn.disabled = true; btn.textContent = 'Guardando…'; }
     var ok = false;
     try{
@@ -964,28 +1038,90 @@
     _wsClose();
   }
 
-  /* Cómo ha ido. Devuelve 1-5, 0 si prefiere no decirlo, o null si cancela.
-     Preguntarlo aquí y no después es lo único que hace que se conteste: media
-     hora más tarde nadie se acuerda de cómo se sentía. */
+  /* ── La pantalla de fin ──────────────────────────────────────────────────
+     Devuelve {energia, esfuerzo, animo} —0 en lo que no haya contestado— o
+     null si vuelve a la sesión. Contestar es opcional: "Guardar y terminar"
+     sin tocar nada guarda el entreno igual. */
   var _finResolver = null;
-  function _preguntarFin(segundos){
-    document.getElementById('finTiempo').textContent = _fmtTime(segundos);
-    document.querySelectorAll('.fin-cara').forEach(function(b){ b.classList.remove('sel'); });
-    _finElegido = 0;
-    document.getElementById('finBack').classList.add('open');
-    return new Promise(function(res){ _finResolver = res; });
+  var _finEnergia = 0, _finEsfuerzo = 0, _finElegido = 0;
+
+  function _finEscala(id, valor){
+    var cont = document.getElementById(id);
+    if (!cont) return;
+    var html = '';
+    for (var n = 1; n <= 10; n++){
+      html += '<button type="button" class="fin-n' + (n <= valor ? ' on' : '') + '"'
+            + ' data-n="' + n + '" aria-label="' + n + ' de 10">' + n + '</button>';
+    }
+    cont.innerHTML = html;
   }
-  var _finElegido = 0;
+
+  function _finPone(cual, n){
+    if (cual === 'energia'){ _finEnergia = (_finEnergia === n) ? 0 : n; }
+    else { _finEsfuerzo = (_finEsfuerzo === n) ? 0 : n; }
+    var valor = cual === 'energia' ? _finEnergia : _finEsfuerzo;
+    _finEscala(cual === 'energia' ? 'finEnergia' : 'finEsfuerzo', valor);
+    var v = document.getElementById(cual === 'energia' ? 'finEnergiaV' : 'finEsfuerzoV');
+    v.innerHTML = (valor || '—') + '<small>/10</small>';
+    v.classList.toggle('puesto', !!valor);
+  }
+
   function finCara(n){
     _finElegido = (_finElegido === n) ? 0 : n;   // volver a pulsar la quita
     document.querySelectorAll('.fin-cara').forEach(function(b){
       b.classList.toggle('sel', parseInt(b.dataset.n, 10) === _finElegido);
     });
   }
+
+  async function _preguntarFin(segundos, exercises){
+    document.getElementById('finTiempo').textContent = _fmtTime(segundos);
+    document.getElementById('finDia').textContent = (_ws && _ws.dayName) || '';
+    document.querySelectorAll('.fin-cara').forEach(function(b){ b.classList.remove('sel'); });
+    _finElegido = 0; _finEnergia = 0; _finEsfuerzo = 0;
+    _finPone('energia', 0); _finPone('esfuerzo', 0);
+    /* Puntos suspensivos mientras se piden, no un cero: un 0 kg que luego
+       cambia a 4 800 es peor que una espera de medio segundo. */
+    ['finSeries', 'finVolumen', 'finRecords'].forEach(function(id){
+      document.getElementById(id).textContent = '…';
+    });
+    document.getElementById('finBack').classList.add('open');
+    _finCifras(exercises);
+    return new Promise(function(res){ _finResolver = res; });
+  }
+
+  /* Series, volumen y récords los cuenta el servidor. Podría hacerlo el
+     navegador, pero entonces habría dos fórmulas para el mismo número —la de
+     aquí y la del historial que ve el coach— y el día que divergen el cliente
+     ve un volumen y su coach otro. */
+  async function _finCifras(exercises){
+    var d = null;
+    try{
+      const r = await fetch(API + '/client/workout-summary', {
+        method: 'POST', headers: headers(), body: JSON.stringify({ exercises: exercises }) });
+      if (r.ok) d = (await r.json()).data || null;
+    }catch(e){}
+    // Si no se pudo preguntar, un guion: es lo que se sabe, que es nada.
+    document.getElementById('finSeries').textContent   = d ? d.sets : '—';
+    document.getElementById('finVolumen').textContent  = d ? (Math.round(d.volume) + 'kg') : '—';
+    document.getElementById('finRecords').textContent  = d ? d.records : '—';
+  }
+
   function finCerrar(guardar){
     document.getElementById('finBack').classList.remove('open');
-    if (_finResolver){ _finResolver(guardar ? _finElegido : null); _finResolver = null; }
+    if (_finResolver){
+      _finResolver(guardar ? { energia: _finEnergia, esfuerzo: _finEsfuerzo, animo: _finElegido } : null);
+      _finResolver = null;
+    }
   }
+
+  // Las dos escalas se pintan de nuevo con cada toque, así que los botones no
+  // pueden llevar su propio manejador: se escucha en el contenedor.
+  ['finEnergia', 'finEsfuerzo'].forEach(function(id){
+    document.getElementById(id).addEventListener('click', function(ev){
+      var b = ev.target.closest('.fin-n');
+      if (b) _finPone(id === 'finEnergia' ? 'energia' : 'esfuerzo', parseInt(b.dataset.n, 10));
+    });
+  });
 
   async function loadProfile(){
     try{

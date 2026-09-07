@@ -4982,7 +4982,7 @@ function _seMeses(filas) {
         <thead><tr>
           <th>Fecha</th><th>Sesión</th><th>Estado</th>
           <th class="se-num">Duración</th><th style="text-align:center;">Series</th>
-          <th class="se-num">Tonelaje</th><th class="se-num">RPE</th>
+          <th class="se-num">Tonelaje</th><th class="se-num">Energía</th><th class="se-num">RPE</th>
           <th style="text-align:center;">Ánimo</th><th></th>
         </tr></thead>
         <tbody>${g.map(_seFila).join('')}</tbody>
@@ -5008,6 +5008,7 @@ function _seFila(f) {
       ${prev ? `<div class="se-series-b${parcial}"><i style="width:${pct}%"></i></div>` : ''}
     </td>
     <td class="se-num">${f.tonelaje ? _seFmt(Math.round(f.tonelaje)) + ' kg' : '—'}</td>
+    <td class="se-num">${f.energy == null ? '—' : f.energy}</td>
     <td class="se-num">${f.rpe == null ? '—' : f.rpe}</td>
     <td style="text-align:center;">${f.mood ? `<span class="se-mood">${SE_CARAS[f.mood] || ''}</span>`
         : '<span class="se-mood vacio">—</span>'}</td>
