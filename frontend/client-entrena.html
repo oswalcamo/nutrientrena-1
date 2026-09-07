@@ -270,6 +270,50 @@
     .ws-rpe.vacio{color:#9CA3AF;}
     .ws-set.done .ws-rpe{background:#ECFDF5;border-color:#A7F3D0;}
 
+    /* ── La ficha del ejercicio ────────────────────────────────────────────
+       Al tocar la foto solo se abría el vídeo. Todo lo demás que el coach
+       había escrito —cómo se hace, qué músculos trabaja, con qué material—
+       estaba guardado y el cliente no lo veía en ninguna parte. Sube desde
+       abajo, como la hoja del RPE: se consulta a mitad de la serie y se
+       cierra sin salir de la sesión. */
+    .ej-back{position:fixed;inset:0;background:rgba(17,24,39,0);z-index:1300;
+      display:flex;align-items:flex-end;justify-content:center;
+      visibility:hidden;transition:background .22s,visibility 0s .22s;}
+    .ej-back.open{background:rgba(17,24,39,.5);visibility:visible;transition:background .22s;}
+    .ej-hoja{width:100%;max-width:460px;background:#fff;border-radius:22px 22px 0 0;
+      padding:18px 18px calc(18px + env(safe-area-inset-bottom));
+      transform:translateY(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);
+      max-height:92vh;overflow-y:auto;}
+    .ej-back.open .ej-hoja{transform:translateY(0);}
+    .ej-cab{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px;}
+    .ej-tit{font-size:19px;font-weight:800;color:#111827;line-height:1.25;}
+    .ej-mus{font-size:13px;color:#6B7280;margin-top:3px;}
+    .ej-x{margin-left:auto;flex-shrink:0;width:34px;height:34px;border-radius:50%;border:none;
+      background:#F3F4F6;color:#6B7280;font-size:17px;line-height:1;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;font-family:inherit;}
+    .ej-x:hover{background:#E5E7EB;color:#111827;}
+    /* El vídeo sigue estando: es lo que había y lo que más se mira. */
+    .ej-media{background:#0F172A;border-radius:14px;overflow:hidden;margin-bottom:14px;
+      aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;}
+    .ej-media iframe,.ej-media video,.ej-media img{width:100%;height:100%;border:none;display:block;
+      object-fit:contain;}
+    .ej-media.foto{background:#F3F4F6;}
+    .ej-verlo{display:block;text-align:center;font-size:13px;font-weight:700;color:var(--indigo);
+      text-decoration:none;padding:10px;}
+    /* Hoy te toca: lo que el coach puso para ESTA sesión. Va arriba porque es
+       lo que el cliente ha venido a hacer; la referencia del catálogo, debajo
+       y en gris, para que no se confundan. */
+    .ej-hoy{display:flex;gap:8px;margin-bottom:14px;}
+    .ej-hoy > div{flex:1;background:#EEF2FF;border-radius:12px;padding:10px 8px;text-align:center;}
+    .ej-hoy .v{font-size:15px;font-weight:800;color:var(--indigo);font-variant-numeric:tabular-nums;}
+    .ej-hoy .l{font-size:11px;color:#6B7280;margin-top:2px;}
+    .ej-desc{font-size:14px;color:#374151;line-height:1.55;margin-bottom:14px;white-space:pre-wrap;}
+    .ej-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+    .ej-chip{background:#F3F4F6;border-radius:999px;padding:5px 11px;font-size:12px;color:#374151;}
+    .ej-chip b{font-weight:700;color:#111827;}
+    .ej-ref{font-size:12px;color:#9CA3AF;text-align:center;}
+    .ej-vacio{font-size:13.5px;color:#9CA3AF;text-align:center;padding:8px 0 14px;}
+
     /* ── La pantalla de fin ────────────────────────────────────────────────
        Ocupa la pantalla entera, no una ventanita: es el momento en que se
        cierra la sesión y lo que hay que enseñar es lo que acaba de hacer.
@@ -437,6 +481,19 @@
 
     <div class="rpe-chips" id="rpeChips"></div>
     <button class="rpe-guardar" onclick="guardarRPE()">&#10003; Guardar RPE</button>
+  </div>
+</div>
+
+<div class="ej-back" id="ejBack" onclick="if(event.target===this)cerrarFicha()">
+  <div class="ej-hoja" role="dialog" aria-modal="true" aria-labelledby="ejTit">
+    <div class="ej-cab">
+      <div>
+        <div class="ej-tit" id="ejTit">Ejercicio</div>
+        <div class="ej-mus" id="ejMus"></div>
+      </div>
+      <button class="ej-x" onclick="cerrarFicha()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div id="ejCuerpo"></div>
   </div>
 </div>
 
@@ -776,17 +833,126 @@
     if (m >= 60){ var h = Math.floor(m / 60); m = m % 60; return h + ':' + String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0'); }
     return m + ':' + String(s).padStart(2,'0');
   }
-  function _wsThumb(e){
-    var inner = e.image ? '<img src="' + esc(e.image) + '" alt="">' : DUMBBELL;
+  function _wsThumb(e, ei){
+    var s = e.video_url ? videoSource(e.video_url) : null;
+    var th = e.image ? '<img src="' + esc(e.image) + '" alt="">'
+           : ((s && s.thumb) ? '<img src="' + esc(s.thumb) + '" alt="">' : DUMBBELL);
+    /* Tocar la foto abre la FICHA del ejercicio, no solo el vídeo: cómo se
+       hace, qué músculos trabaja, con qué material. Todo eso lo tenía escrito
+       el coach y el cliente no podía verlo en ninguna parte. */
+    var abrir = 'abrirFicha(' + ei + ')';
+    var play = e.video_url ? '<div class="play"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="rgba(17,24,39,.55)"/><path d="M10 8l6 4-6 4z" fill="#fff"/></svg></div>' : '';
+    return '<div class="ws-thumb" role="button" title="Ver cómo se hace" onclick="' + abrir + '"' + comoBoton(abrir) + '>' + th + play + '</div>';
+  }
+
+  /* ── La ficha del ejercicio ───────────────────────────────────────────────
+     Lo que el cliente ya tiene en la mano —el nombre, lo que le toca hoy, el
+     vídeo— se pinta al momento; lo que hay que ir a buscar —la descripción,
+     el material, el patrón— llega después. Así la hoja abre siempre al
+     instante aunque la conexión del gimnasio sea la que es. */
+  /* La caché guarda la ficha, o `false` si ya se preguntó y no vino. Se mira
+     con `in` y no con `||`: `false` es una respuesta —"no hay"— y colapsarla a
+     "todavía no se ha preguntado" dejaba la hoja en "Cargando…" para siempre y
+     repetía la petición en cada toque. */
+  var _fichaCache = {};
+  var _fichaDe = function(tid){ return (tid in _fichaCache) ? _fichaCache[tid] : null; };
+
+  function abrirFicha(ei){
+    var e = _ws && _ws.exercises[ei];
+    if (!e) return;
+    document.getElementById('ejTit').textContent = e.name || 'Ejercicio';
+    document.getElementById('ejMus').textContent = e.muscle || '';
+    document.getElementById('ejCuerpo').innerHTML = _fichaHTML(e, _fichaDe(e.training_id));
+    document.getElementById('ejBack').classList.add('open');
+    if (e.training_id && !(e.training_id in _fichaCache)) _cargarFicha(e, ei);
+  }
+
+  async function _cargarFicha(e, ei){
+    var d = null;
+    try{
+      const r = await fetch(API + '/client/exercise/' + e.training_id, { headers: headers() });
+      if (r.ok) d = (await r.json()).data || null;
+    }catch(err){}
+    // `false` marca "ya se preguntó y no hay nada": sin esto se volvería a
+    // pedir cada vez que abre la ficha del mismo ejercicio.
+    _fichaCache[e.training_id] = d || false;
+    // Si mientras tanto ha abierto otra, no se le pisa.
+    if (!_ws || _ws.exercises[ei] !== e) return;
+    if (!document.getElementById('ejBack').classList.contains('open')) return;
+    // Lo guardado, no `d`: cuando no vino nada hay que pintar el aviso, y
+    // pintar `null` dejaba la hoja en "Cargando…" para siempre.
+    document.getElementById('ejCuerpo').innerHTML = _fichaHTML(e, _fichaDe(e.training_id));
+  }
+
+  function _fichaHTML(e, d){
+    var h = '';
+
+    // El vídeo, que es lo que había y lo que más se mira.
     if (e.video_url){
       var s = videoSource(e.video_url);
-      var th = e.image ? '<img src="' + esc(e.image) + '" alt="">' : (s.thumb ? '<img src="' + esc(s.thumb) + '" alt="">' : DUMBBELL);
-      // El botón "en curso" que sacaba al cliente de la app a mitad de la
-      // serie. Ahora abre el mismo modal que el plan del día.
-      var abrir = 'playVideo(\'' + attr(e.video_url) + '\')';
-      return '<div class="ws-thumb" role="button" title="Ver ejecución" onclick="' + abrir + '"' + comoBoton(abrir) + '>' + th + '<div class="play"><svg width="20" height="20" viewBox="0 0 24 24"><circle cx="12" cy="12" r="11" fill="rgba(17,24,39,.55)"/><path d="M10 8l6 4-6 4z" fill="#fff"/></svg></div></div>';
+      if (s.kind === 'iframe'){
+        h += '<div class="ej-media"><iframe src="' + esc(s.src) + '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>';
+      } else if (s.kind === 'file' && (!s.hls || canPlayHls())){
+        h += '<div class="ej-media"><video src="' + esc(s.src) + '" controls playsinline preload="metadata"></video></div>';
+      } else {
+        // Un HLS que este navegador no sabe leer, o una página cualquiera: no
+        // hay nada que incrustar, así que se ofrece el enlace en vez de una
+        // caja negra que no reproduce.
+        if (e.image) h += '<div class="ej-media foto"><img src="' + esc(e.image) + '" alt=""></div>';
+        h += '<a class="ej-verlo" href="' + esc(s.page || e.video_url) + '" target="_blank" rel="noopener">Ver el vídeo →</a>';
+      }
+    } else if (e.image){
+      h += '<div class="ej-media foto"><img src="' + esc(e.image) + '" alt=""></div>';
     }
-    return '<div class="ws-thumb">' + inner + '</div>';
+
+    // Lo que le toca HOY. Va antes que nada del catálogo: es a lo que ha venido.
+    var hoy = [];
+    if (e.sets && e.sets.length) hoy.push(['v', e.sets.length, 'Series']);
+    if (e.target) hoy.push(['v', esc(e.target), 'Reps']);
+    if (e.rest) hoy.push(['v', esc(e.rest) + 's', 'Descanso']);
+    if (hoy.length){
+      h += '<div class="ej-hoy">' + hoy.map(function(c){
+        return '<div><div class="v">' + c[1] + '</div><div class="l">' + c[2] + '</div></div>';
+      }).join('') + '</div>';
+    }
+
+    if (d === null){ h += '<div class="ej-vacio">Cargando…</div>'; return h; }
+    if (d === false){ h += '<div class="ej-vacio">No se pudo cargar la ficha</div>'; return h; }
+
+    if (d.description) h += '<div class="ej-desc">' + esc(d.description) + '</div>';
+
+    var chips = [];
+    if ((d.secondary_muscle_names || []).length)
+      chips.push(['También trabaja', d.secondary_muscle_names.join(', ')]);
+    if (d.material) chips.push(['Material', d.material]);
+    if (d.movement_pattern) chips.push(['Patrón', d.movement_pattern]);
+    if (d.exercise_type) chips.push(['Tipo', d.exercise_type]);
+    if ((d.difficulty_names || []).length) chips.push(['Nivel', d.difficulty_names.join(' · ')]);
+    if (d.location) chips.push(['Dónde', d.location]);
+    if (chips.length){
+      h += '<div class="ej-chips">' + chips.map(function(c){
+        return '<span class="ej-chip"><b>' + esc(c[0]) + ':</b> ' + esc(c[1]) + '</span>';
+      }).join('') + '</div>';
+    }
+
+    /* La referencia general del catálogo, en gris y abajo: lo que manda es lo
+       que le puso su coach, y ponerlas al mismo nivel haría dudar de cuál de
+       las dos seguir. */
+    var ref = [d.rec_series ? d.rec_series + ' series' : null,
+               d.rec_reps ? d.rec_reps + ' reps' : null,
+               d.rec_rest ? 'descanso ' + d.rec_rest : null].filter(Boolean);
+    if (ref.length) h += '<div class="ej-ref">Referencia del ejercicio: ' + esc(ref.join(' · ')) + '</div>';
+
+    if (!d.description && !chips.length && !ref.length)
+      h += '<div class="ej-vacio">Tu coach no ha escrito más detalles de este ejercicio</div>';
+
+    return h;
+  }
+
+  function cerrarFicha(){
+    document.getElementById('ejBack').classList.remove('open');
+    // Sin esto el vídeo sigue sonando debajo de la hoja cerrada.
+    document.getElementById('ejCuerpo').innerHTML = '';
   }
 
   function startWorkout(){
@@ -862,7 +1028,7 @@
           + '</tr>';
       }).join('');
       return '<div class="ws-ex">'
-        + '<div class="ws-ex-head">' + _wsThumb(e)
+        + '<div class="ws-ex-head">' + _wsThumb(e, ei)
         + '<div class="ws-ex-info"><div class="ws-ex-name">' + esc(e.name) + '</div><div class="ws-ex-dose">' + esc(doseTxt) + '</div></div></div>'
         + '<button class="ws-note-btn" onclick="wsNote(' + ei + ')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> Añadir nota</button>'
         + '<textarea class="ws-note-ta' + (e.noteOpen ? ' show' : '') + '" id="wsNote-' + ei + '" placeholder="Escribe una nota para este ejercicio…" oninput="_ws.exercises[' + ei + '].note=this.value">' + esc(e.note) + '</textarea>'
