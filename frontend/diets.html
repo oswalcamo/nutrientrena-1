@@ -1857,8 +1857,18 @@ function closeDietPreview() {
 async function duplicateDiet(id) {
   closeDietPreview();
   await openForm(id);
+  /* Una copia no comparte NADA con el original. El editor acaba de cargarse
+     desde la otra dieta, así que cada comida y cada fila lleva el id de
+     aquélla; al quitarle el id a la dieta y guardar, esos ids viajaban igual y
+     el servidor los buscaba entre las comidas de una dieta recién creada, donde
+     no existe ninguno. Se los saltaba en silencio: la copia salía vacía. */
+  _meals.forEach(function(meal) {
+    meal.db_id = null;
+    meal.rows.forEach(function(row){ row.db_id = null; });
+  });
   editingId = null;
   document.getElementById('formViewTitle').textContent = 'Duplicar dieta';
+  var _sl = document.getElementById('dpSaveLbl'); if (_sl) _sl.textContent = 'Crear dieta';
   var tf = document.getElementById('f_title');
   if (tf) tf.value = (tf.value || '') + ' (Copia)';
 }

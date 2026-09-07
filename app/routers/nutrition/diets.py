@@ -241,6 +241,20 @@ def _save_pathologies(db: Session, diet_id: str, pathology_ids: list):
         db.execute(diet_pathologies_table.insert().values(diet_id=diet_id, pathology_id=pid))
 
 
+def _fila_de(db: Session, dfa_id, diet_id: str):
+    """La fila de alimento `dfa_id`, SI es de esta dieta.
+
+    Antes se buscaba solo por identificador, sin mirar de quién era. Guardar
+    una dieta con el identificador de una fila ajena —lo que manda «Duplicar»,
+    que reenvía el formulario de la dieta de la que se cargó— encontraba la
+    fila de la OTRA dieta y le reescribía la cantidad, o la borraba. No es que
+    se perdiera la copia: es que se estropeaba el original.
+    """
+    return db.query(DietFoodAliment).filter(
+        DietFoodAliment.id == dfa_id, DietFoodAliment.diet_id == diet_id
+    ).first()
+
+
 def _save_foods(db: Session, diet_id: str, foods_data: Optional[list], current_user_id: int):
     """Guarda las comidas de una dieta.
 
@@ -270,12 +284,18 @@ def _save_foods(db: Session, diet_id: str, foods_data: Optional[list], current_u
                 db.delete(food)
             continue
 
+        food = None
         if food_data.id:
             food = db.query(DietFood).filter(
                 DietFood.id == food_data.id, DietFood.diet_id == diet_id
             ).first()
-            if not food:
-                continue
+
+        # Un identificador que no es de esta dieta describe una comida NUEVA, no
+        # una que no exista. Es lo que manda «Duplicar»: el editor abre la dieta
+        # original, le quita el identificador a la dieta y guarda, pero las
+        # comidas y las filas siguen llevando el de aquélla. Saltárselas creaba
+        # la copia vacía —con su título y sus objetivos— diciendo «Dieta creada».
+        if food:
             food.name = food_data.name
             # `None` = "no lo toques"; vacío = "bórralo". Sin distinguirlo, una
             # edición parcial que no mandara el subtítulo lo borraría sin que
@@ -295,9 +315,7 @@ def _save_foods(db: Session, diet_id: str, foods_data: Optional[list], current_u
 
         for aliment_data in (food_data.detail or []):
             if aliment_data.delete and aliment_data.id:
-                dfa = db.query(DietFoodAliment).filter(
-                    DietFoodAliment.id == aliment_data.id
-                ).first()
+                dfa = _fila_de(db, aliment_data.id, diet_id)
                 if dfa:
                     db.delete(dfa)
                 continue
@@ -331,9 +349,7 @@ def _save_foods(db: Session, diet_id: str, foods_data: Optional[list], current_u
                 db.flush()
 
             if aliment_data.id:
-                dfa = db.query(DietFoodAliment).filter(
-                    DietFoodAliment.id == aliment_data.id
-                ).first()
+                dfa = _fila_de(db, aliment_data.id, diet_id)
                 if dfa:
                     # If the chosen aliment changed, re-clone the new source and repoint.
                     # dfa.aliment_id points to a clone; its parent_id is the source aliment.
