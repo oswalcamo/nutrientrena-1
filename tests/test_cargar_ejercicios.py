@@ -140,27 +140,77 @@ def test_la_imagen_sale_del_mapa_de_lo_subido(tmp_path):
     assert d["image"] == "https://cdn/ejercicios/press-abc.png"
 
 
-def test_el_equipamiento_se_junta_y_no_desborda_la_columna(tmp_path):
+def test_el_equipamiento_se_junta_en_una_celda(tmp_path):
     fila = ce.leer_csv(_csv(tmp_path))[0]
     assert ce.a_columnas(fila, {}, {})["material"] == "Barra, Banco"
-    largo = dict(fila, equipamiento=", ".join(["Mancuernas"] * 30))
-    assert len(ce.a_columnas(largo, {}, {})["material"]) <= ce.LARGO_MATERIAL
+
+
+def test_LO_QUE_NO_CABE_SE_AVISA_NO_SE_RECORTA(tmp_path):
+    """Recortar deja media frase con pinta de dato bueno, y nadie repasa 132
+    filas a mano para descubrir cuál se quedó por la mitad."""
+    filas = ce.leer_csv(_csv(tmp_path))
+    filas[0]["equipamiento"] = ", ".join(["Mancuernas"] * 30)
+    assert len(ce.a_columnas(filas[0], {}, {})["material"]) > ce.LARGOS["material"], \
+        "lo ha recortado en vez de dejarlo como está"
+    no_caben = ce.revisar(filas, {}, [])["no_cabe"]
+    assert [(n, c) for n, c, _l, _t in no_caben] == [("Press banca", "material")], no_caben
 
 
 # ── Las recomendaciones, que vienen en una sola celda ──────────────────────
 
-def test_la_recomendacion_se_trocea_en_series_reps_y_descanso():
-    assert ce.recomendaciones("3-4 series de 8-12 repeticiones, descanso 90s") == \
-        ("3-4", "8-12", "90s")
+def test_LA_FORMA_DE_LAS_99_FILAS():
+    """El molde que sigue el fichero en casi todas: «N series de N
+    repeticiones, N seg de descanso»."""
+    assert ce.recomendaciones("3 series de 10 repeticiones, 60 seg de descanso") == \
+        ("3", "10", "60 seg")
+    assert ce.recomendaciones("3 series de 10 repeticiones") == ("3", "10", None)
+
+
+def test_UNA_RONDA_NO_ES_UNA_SERIE():
+    """«8-10 rondas» y «6-8 sprints» conservan la palabra: no son series y el
+    cliente lee la diferencia. Y lo de dentro tampoco son repeticiones."""
+    assert ce.recomendaciones("8-10 rondas de 30 seg de trabajo, 30 seg de descanso") == \
+        ("8-10 rondas", "30 seg de trabajo", "30 seg")
+    assert ce.recomendaciones("6-8 sprints de 15-20 seg, 60-90 seg de descanso") == \
+        ("6-8 sprints", "15-20 seg", "60-90 seg")
+
+
+def test_LO_QUE_MATIZA_EL_EJERCICIO_NO_SE_TIRA():
+    """«por lado» y «lentas» cambian lo que hay que hacer. Quedarse solo con
+    la cifra convierte dos ejercicios distintos en el mismo."""
+    assert ce.recomendaciones("2-3 series de 8-10 repeticiones por lado") == \
+        ("2-3", "8-10 por lado", None)
+    assert ce.recomendaciones("1-2 series de 8-10 repeticiones lentas") == \
+        ("1-2", "8-10 lentas", None)
+
+
+def test_las_dos_formas_de_escribir_el_descanso():
+    """El fichero pone «60 seg de descanso»; cualquiera teclea «descanso 90s».
+    Sin la segunda se quedaba pegada a las repeticiones."""
+    assert ce.recomendaciones("3 series de 8-12 reps, 60 seg de descanso")[2] == "60 seg"
+    assert ce.recomendaciones("3 series de 8-12 reps, descanso 90s") == ("3", "8-12", "90s")
+
+
+def test_la_forma_corta_sin_palabras():
     assert ce.recomendaciones("4x10") == ("4", "10", None)
 
 
 def test_LO_QUE_NO_SE_ENTIENDE_NO_SE_INVENTA():
-    """Un reparto inventado le enseñaría al cliente unas series que nadie
-    escribió. Se guarda entero y la pantalla lo pinta tal cual."""
-    s, r, d = ce.recomendaciones("Según sensaciones")
-    assert s == "Según sensaciones" and r is None and d is None
+    """Un ejercicio de cardio no se prescribe en series y repeticiones. El
+    reparto inventado le enseñaría al cliente cifras que nadie escribió: se
+    guarda entero y la pantalla lo pinta tal cual."""
+    for texto in ("Continuo: 20-30 min a ritmo constante",
+                  "30 seg de trabajo por lado",
+                  "Según sensaciones"):
+        s, r, d = ce.recomendaciones(texto)
+        assert (s, r, d) == (texto, None, None), texto
     assert ce.recomendaciones("") == (None, None, None)
+
+
+def test_repeticiones_no_se_come_las_letras():
+    """`reps?` antes que `repeticiones?` en la alternativa casaba «rep» y
+    dejaba «eticiones» pegado a la cifra, en las 99 filas del molde común."""
+    assert ce.recomendaciones("3 series de 10 repeticiones")[1] == "10"
 
 
 # ── Los avisos, que es lo que se mira antes de escribir ────────────────────

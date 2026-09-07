@@ -48,9 +48,13 @@ LUGARES = {"gimnasio": "gym", "casa": "home", "exterior": "outdoor",
            "aire libre": "outdoor", "ambos": "both"}
 NIVELES = {"principiante": 1, "intermedio": 2, "avanzado": 3}
 
-# `trainings.material` es VARCHAR(120). El equipamiento viene como lista y
-# alguna fila puede pasarse; se avisa en vez de recortar en silencio.
-LARGO_MATERIAL = 120
+# Lo que cabe en cada columna de `trainings`. Se comprueba ANTES de escribir:
+# un recorte silencioso deja media frase con pinta de dato bueno, y nadie mira
+# 132 filas a mano para descubrir cuál se quedó a la mitad.
+LARGOS = {"name": 255, "material": 120, "movement_pattern": 255,
+          "rec_series": 120, "rec_reps": 120, "rec_rest": 120,
+          "video_url": 500, "image": 500, "difficulty_levels": 100}
+LARGO_MATERIAL = LARGOS["material"]
 
 
 def _norm(texto):
@@ -73,39 +77,72 @@ def _lista(celda):
 # columnas. Se intenta separarlas; lo que no se entiende se guarda entero en
 # `rec_series` en vez de inventar un reparto. La pantalla del cliente lo pinta
 # tal cual, así que un texto sin trocear se sigue leyendo bien.
-_NUM = r"\d+\s*(?:[-–]\s*\d+)?"
-# "4x10" y "3-4 x 8-12": la forma corta, donde ni «series» ni «reps» aparecen.
-_POR = re.compile(rf"({_NUM})\s*[x×]\s*({_NUM})", re.I)
-_SERIES = re.compile(rf"({_NUM})\s*series?", re.I)
-_REPS = re.compile(rf"({_NUM})\s*(?:reps?|repeticiones?)", re.I)
-_DESC = re.compile(rf"(?:descanso|rest)\D{{0,4}}({_NUM}\s*(?:s|seg|segundos|min|'|\")?)", re.I)
+_NUM = r"\d+(?:\s*[-–]\s*\d+)?"
+# El descanso va al final, y en el fichero viene con el número DELANTE:
+# «…, 60 seg de descanso». La otra forma —«…, descanso 90s»— no está en esta
+# entrega pero es la que teclea cualquiera, y sin ella se quedaría pegada a
+# las repeticiones: «8-12, descanso 90s».
+_DESCANSO = re.compile(
+    rf",\s*(?:({_NUM}[^,]*?)\s+de\s+descanso|descanso\s*:?\s*([^,]+?))\s*$", re.I)
+# «4x10» y «3-4 x 8-12»: la forma corta, sin las palabras.
+_POR = re.compile(rf"^({_NUM})\s*[x×]\s*({_NUM})$", re.I)
+# «3 series de …», «8-10 rondas de …», «6-8 sprints de …»: una cantidad, su
+# unidad, y detrás lo que se hace en cada una.
+_CABEZA = re.compile(rf"^({_NUM})\s*(series?|rondas?|sprints?|vueltas?)?\s+de\s+(.+)$", re.I)
+# «10 repeticiones», «8-10 repeticiones por lado»: la palabra sobra —la columna
+# ya se llama reps— pero lo que va detrás no.
+# El orden importa: con `reps?` delante, «repeticiones» casa como «rep» y deja
+# «eticiones» pegado a la cifra. La alternativa larga va primero.
+_REPS = re.compile(rf"^({_NUM})\s*(?:repeticiones?|reps?)\s*(.*)$", re.I)
 
 
 def _limpia(texto):
-    return " ".join(str(texto).split()).replace("–", "-").replace(" -", "-").replace("- ", "-")
+    t = " ".join(str(texto or "").split()).replace("–", "-")
+    return re.sub(r"\s*-\s*", "-", t)
 
 
 def recomendaciones(texto):
-    """(series, reps, descanso) de la celda libre. Lo que no se entiende va
-    entero en la primera y las otras quedan vacías."""
+    """(series, reps, descanso) de la celda de texto libre.
+
+    El fichero trae trece formas distintas y casi todas siguen el mismo molde:
+    «3 series de 10 repeticiones, 60 seg de descanso». Se separa por ese molde
+    y se conserva LO QUE NO ES RUIDO: «por lado», «lentas» o «de trabajo»
+    cambian el ejercicio y se quedan pegadas a su cifra.
+
+    Lo que no encaja —«Continuo: 20-30 min a ritmo constante»— se guarda
+    entero. Repartirlo a ojo le enseñaría al cliente unas cifras que nadie
+    escribió.
+    """
     t = " ".join(str(texto or "").split())
     if not t:
         return None, None, None
-    d = _DESC.search(t)
-    descanso = _limpia(d.group(1)) if d else None
 
-    corta = _POR.search(t)
-    if corta:
-        return _limpia(corta.group(1)), _limpia(corta.group(2)), descanso
+    descanso = None
+    m = _DESCANSO.search(t)
+    if m:
+        descanso = _limpia(m.group(1) or m.group(2))
+        t = t[:m.start()].strip()
 
-    s = _SERIES.search(t)
-    r = _REPS.search(t)
-    if not s and not r:
-        # Ni series ni repeticiones: no hay nada que repartir y repartirlo a
-        # ojo le enseñaría al cliente unas cifras que nadie escribió.
-        return t[:40], None, None
-    return (_limpia(s.group(1)) if s else None,
-            _limpia(r.group(1)) if r else None, descanso)
+    corto = _POR.match(t)
+    if corto:
+        return _limpia(corto.group(1)), _limpia(corto.group(2)), descanso
+
+    cabeza = _CABEZA.match(t)
+    if not cabeza:
+        # Ni cantidad ni unidad: no hay molde que aplicar.
+        return t, None, descanso
+
+    cifra, unidad, resto = cabeza.groups()
+    # «3 series» → «3», que la columna ya se llama series. «8-10 rondas» y
+    # «6-8 sprints» conservan la palabra: no son lo mismo y el cliente lo lee.
+    series = _limpia(cifra) if (unidad or "").lower().startswith("serie") \
+        else _limpia(f"{cifra} {unidad}" if unidad else cifra)
+
+    reps = _REPS.match(resto.strip())
+    if reps:
+        cola = reps.group(2).strip()
+        return series, _limpia(f"{reps.group(1)} {cola}" if cola else reps.group(1)), descanso
+    return series, _limpia(resto), descanso
 
 
 def leer_csv(ruta):
@@ -134,7 +171,7 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
     """
     avisos = {"sin_nombre": [], "grupos_desconocidos": {}, "tipos": set(),
               "lugares": set(), "niveles": set(), "sin_imagen": [],
-              "imagen_no_subida": [], "sin_video": [], "material_largo": [],
+              "imagen_no_subida": [], "sin_video": [], "no_cabe": [],
               "repetidos": [], "rec_sin_trocear": []}
     vistos = {}
     conocidos = {_norm(g) for g in grupos_conocidos}
@@ -174,12 +211,15 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
         if not (fila.get("url_video") or "").strip():
             avisos["sin_video"].append(nombre)
 
-        material = ", ".join(_lista(fila.get("equipamiento")))
-        if len(material) > LARGO_MATERIAL:
-            avisos["material_largo"].append((nombre, len(material)))
+        # Lo que no cabe se dice por su nombre y por su columna: recortar deja
+        # media frase con pinta de dato bueno.
+        for campo, valor in a_columnas(fila, mapa_imagenes, {}).items():
+            tope = LARGOS.get(campo)
+            if tope and isinstance(valor, str) and len(valor) > tope:
+                avisos["no_cabe"].append((nombre, campo, len(valor), tope))
 
         s, r, _d = recomendaciones(fila.get("series_recomendadas"))
-        if s and not r:
+        if s and not r and not _d:
             avisos["rec_sin_trocear"].append(nombre)
 
     return avisos
@@ -200,7 +240,7 @@ def a_columnas(fila, mapa_imagenes, grupos_por_nombre):
                    if _norm(x) in grupos_por_nombre]
 
     nivel = NIVELES.get(_norm(fila.get("nivel")))
-    material = ", ".join(_lista(fila.get("equipamiento")))[:LARGO_MATERIAL] or None
+    material = ", ".join(_lista(fila.get("equipamiento"))) or None
     rec_s, rec_r, rec_d = recomendaciones(fila.get("series_recomendadas"))
     imagen = (fila.get("imagen") or "").strip()
 
@@ -268,8 +308,9 @@ def _pinta_avisos(avisos):
     bloque("Sin imagen en el CSV", avisos["sin_imagen"])
     bloque("Imagen del CSV que NO está subida a R2", avisos["imagen_no_subida"])
     bloque("Sin vídeo", avisos["sin_video"])
-    bloque("Equipamiento más largo de lo que cabe (se recorta)",
-           avisos["material_largo"], lambda t: f"{t[0]} ({t[1]} caracteres)")
+    bloque("NO CABE en su columna (hay que arreglarlo antes de cargar)",
+           avisos["no_cabe"],
+           lambda t: f"{t[0]}: {t[1]} tiene {t[2]} caracteres y caben {t[3]}")
     bloque("Recomendación que no se pudo trocear (va entera en «series»)",
            avisos["rec_sin_trocear"])
     if not hay:
