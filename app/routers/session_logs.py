@@ -58,6 +58,7 @@ def _out(s: WorkoutSession) -> dict:
         "day_name": s.day_name,
         "duration_min": s.duration_min,
         "rpe": s.rpe,
+        "energy": s.energy,
         "mood": s.mood,
         "notes": s.notes,
         "created_at": s.created_at.isoformat() if s.created_at else None,
@@ -216,6 +217,7 @@ def historial(
             "series_previstas": registradas,
             "tonelaje": tonelaje(s),
             "rpe": s.rpe,
+            "energy": s.energy,
             "mood": s.mood,
             "registrada": True,
         })
@@ -240,6 +242,7 @@ def historial(
             "series_previstas": None,
             "tonelaje": None,
             "rpe": None,
+            "energy": None,
             "mood": None,
             "registrada": False,
         })

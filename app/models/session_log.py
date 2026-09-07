@@ -21,6 +21,11 @@ class WorkoutSession(Base):
     # terminar y es OPCIONAL: las sesiones de antes no lo tienen y las de ahora
     # tampoco si prefiere no decirlo. Vacío es vacío, no "normal".
     mood = Column(Integer, nullable=True)
+    # Con qué energía LLEGÓ al entreno, de 1 a 10. Es otra cosa que el esfuerzo
+    # (`rpe`, cuánto se vació) y que el ánimo (`mood`, cómo salió): dos sesiones
+    # con el mismo esfuerzo no se parecen si a una llegó a 3 y a la otra a 9.
+    # Opcional, como las demás: vacío es vacío.
+    energy = Column(Integer, nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

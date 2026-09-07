@@ -897,6 +897,9 @@ class _WorkoutSessionBody(BaseModel):
     # vacío, y la ficha del coach enseña un hueco en vez de inventarse un
     # "normal" que el cliente nunca dio.
     mood: Optional[int] = Field(default=None, ge=1, le=5)
+    # Con qué energía llegó, de 1 a 10. Se pregunta al terminar junto al
+    # esfuerzo (`rpe`), y como aquél es opcional.
+    energy: Optional[int] = Field(default=None, ge=1, le=10)
     notes: Optional[str] = None
     exercises: Optional[list[_SessionExerciseBody]] = None
 
@@ -916,6 +919,7 @@ def client_workout_session(body: _WorkoutSessionBody, db: Session = Depends(get_
         duration_min=body.duration_min,
         rpe=body.rpe,
         mood=body.mood,
+        energy=body.energy,
         notes=body.notes,
     )
     db.add(session)
@@ -953,6 +957,68 @@ def client_workout_session(body: _WorkoutSessionBody, db: Session = Depends(get_
         "exercises": len(body.exercises or []),
         "sets": total_sets,
     }, "Entrenamiento registrado")
+
+
+class _SummaryBody(BaseModel):
+    exercises: Optional[list[_SessionExerciseBody]] = None
+
+
+@router.post("/workout-summary", summary="Resumen de la sesión antes de guardarla", description="Series hechas, volumen levantado y récords de la sesión que el cliente acaba de terminar. No guarda nada: es lo que se le enseña en la pantalla de fin para que lo vea antes de decidir.")
+def client_workout_summary(
+    body: _SummaryBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role_ids(CLIENT)),
+):
+    """Las cuentas de la pantalla de fin, en el servidor.
+
+    Series y volumen podría sacarlos el navegador, pero entonces habría dos
+    fórmulas para el mismo número: la del móvil al terminar y la del historial
+    que ve el coach. Cuando divergen —un rango de repeticiones "8-10" contado
+    por el mayor en un sitio y por el primero en otro— el cliente ve 12 000 kg
+    y su coach 9 800, y nadie sabe cuál es.
+    """
+    from app.core.entrenos import clave_ejercicio, mejor_marca, records_de, repeticiones
+    from app.models.session_log import WorkoutSessionExercise
+
+    detail = _client_detail(db, current_user)
+    if not detail:
+        return send_error("Perfil de cliente no encontrado")
+
+    ejercicios = body.exercises or []
+
+    # La mejor marca de cada ejercicio en TODO lo que lleva registrado.
+    previas = {}
+    for ex in (db.query(WorkoutSessionExercise)
+               .join(WorkoutSession, WorkoutSessionExercise.session_id == WorkoutSession.id)
+               .filter(WorkoutSession.client_user_detail_id == detail.id).all()):
+        clave = clave_ejercicio(ex.name)
+        marca = mejor_marca(ex.sets)
+        if not clave or marca is None:
+            continue
+        if marca > previas.get(clave, 0):
+            previas[clave] = marca
+
+    records = records_de(ejercicios, previas)
+
+    # Solo lo MARCADO cuenta, igual que en el tonelaje del historial: sumar lo
+    # que dejó a medias sería contarle kilos que no levantó.
+    hechas = 0
+    volumen = 0.0
+    for ex in ejercicios:
+        for st in (ex.sets or []):
+            if not st.done:
+                continue
+            hechas += 1
+            reps = repeticiones(st.reps)
+            if st.weight is not None and reps:
+                volumen += float(st.weight) * reps
+
+    return send_response({
+        "sets": hechas,
+        "volume": round(volumen, 1),
+        "records": len(records),
+        "record_exercises": records,
+    }, "OK")
 
 
 @router.get("/exercise-history", summary="Historial de ejercicios (cliente)", description="Última sesión registrada de cada ejercicio indicado, para mostrar la columna 'Anterior'.")

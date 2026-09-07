@@ -181,3 +181,53 @@ def mmss(total):
         return None
     total = int(round(total))
     return f"{total // 60}:{total % 60:02d}"
+
+
+# ── Récords: la mejor marca de un ejercicio ────────────────────────────────
+
+def mejor_marca(sets):
+    """El mejor 1RM estimado de un ejercicio, de sus series MARCADAS.
+
+    Se compara por 1RM y no por el peso a secas porque 80 kg × 8 es más que
+    100 kg × 1, y decirle al cliente que ha bajado cuando ha subido es peor que
+    no decirle nada. Una serie por tiempo —una plancha— no tiene 1RM y no
+    cuenta: devuelve None si no queda ninguna serie con peso y repeticiones.
+    """
+    marcas = []
+    for st in (sets or []):
+        if not getattr(st, "done", False):
+            continue
+        rm = rm_estimado(getattr(st, "weight", None), repeticiones(getattr(st, "reps", None)))
+        if rm is not None:
+            marcas.append(rm)
+    return max(marcas) if marcas else None
+
+
+def clave_ejercicio(nombre):
+    """Con qué nombre se agrupa un ejercicio en el historial.
+
+    El cliente escribe «Press banca» y «press  Banca» la semana que viene. Sin
+    normalizar, la segunda no encuentra su historia y sale como récord siempre.
+    """
+    return " ".join(str(nombre or "").split()).lower()
+
+
+def records_de(ejercicios, marcas_previas):
+    """Qué ejercicios de esta sesión superan lo mejor que había antes.
+
+    `marcas_previas` es {clave: 1RM} del historial del cliente. Un ejercicio
+    que NUNCA se había hecho cuenta como récord: es la primera marca, y es lo
+    que espera quien lo acaba de levantar. Empatar no es superar.
+    """
+    hechos = []
+    for ex in (ejercicios or []):
+        marca = mejor_marca(getattr(ex, "sets", None))
+        if marca is None:
+            continue
+        clave = clave_ejercicio(getattr(ex, "name", None))
+        if not clave:
+            continue
+        previa = marcas_previas.get(clave)
+        if previa is None or marca > previa:
+            hechos.append({"name": getattr(ex, "name", None), "rm1": marca, "previo": previa})
+    return hechos
