@@ -1021,6 +1021,76 @@ def client_workout_summary(
     }, "OK")
 
 
+NIVELES = {1: "Principiante", 2: "Intermedio", 3: "Avanzado"}
+TIPOS = {"compound": "Compuesto", "isolation": "Aislamiento",
+         "cardio": "Cardio", "mobility": "Movilidad"}
+DONDE = {"gym": "Gimnasio", "home": "Casa", "outdoor": "Aire libre", "both": "Gimnasio o casa"}
+
+
+@router.get("/exercise/{training_id}", summary="Ficha de un ejercicio (cliente)", description="Cómo se hace el ejercicio: descripción, músculos, material, patrón de movimiento y recomendaciones. Solo de los ejercicios que el cliente tiene en alguna de sus rutinas.")
+def client_exercise(
+    training_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role_ids(CLIENT)),
+):
+    """La ficha que el cliente ve al tocar la foto del ejercicio.
+
+    Solo devuelve ejercicios que estén en ALGUNA de sus rutinas. El catálogo
+    entero no es suyo: hay ejercicios privados de otras organizaciones, y
+    dejarle pedir cualquier id sería enseñárselos con solo acertar un número.
+    """
+    from app.models.muscle_group import MuscleGroup
+    from app.models.routine import RoutineDayDetail
+    from app.models.training import Training
+
+    suyo = (db.query(RoutineDayDetail.id)
+            .join(Routine, RoutineDayDetail.routine_id == Routine.id)
+            .filter(Routine.user_id == current_user.id,
+                    RoutineDayDetail.training_id == training_id)
+            .first())
+    if not suyo:
+        return send_error("Ejercicio no encontrado", code=404)
+
+    t = db.query(Training).filter(Training.id == training_id).first()
+    if not t:
+        return send_error("Ejercicio no encontrado", code=404)
+
+    # Músculos secundarios: se guardan como ids separados por comas.
+    sec_ids = [int(x) for x in str(t.secondary_muscle_group_ids or "").split(",")
+               if str(x).strip().isdigit()]
+    if not sec_ids and t.secondary_muscle_group_id:
+        sec_ids = [t.secondary_muscle_group_id]
+    nombres = {}
+    if sec_ids:
+        nombres = {g.id: g.name for g in
+                   db.query(MuscleGroup).filter(MuscleGroup.id.in_(sec_ids)).all()}
+
+    niveles = sorted({int(x) for x in str(t.difficulty_levels or "").split(",")
+                      if str(x).strip().isdigit()})
+    if not niveles and t.difficulty:
+        niveles = [t.difficulty]
+
+    return send_response({
+        "id": t.id,
+        "name": t.name,
+        "description": t.description,
+        "image": t.image,
+        "video_url": t.video_url,
+        "muscle_group_name": t.muscle_group.name if t.muscle_group else None,
+        "secondary_muscle_names": [nombres[i] for i in sec_ids if i in nombres],
+        "material": t.material,
+        "movement_pattern": t.movement_pattern,
+        # En palabras, no en códigos: "compound" y un 2 no le dicen nada a quien
+        # está entrenando con el móvil en la mano.
+        "exercise_type": TIPOS.get(t.exercise_type or ""),
+        "location": DONDE.get(t.location or ""),
+        "difficulty_names": [NIVELES[n] for n in niveles if n in NIVELES],
+        "rec_series": t.rec_series,
+        "rec_reps": t.rec_reps,
+        "rec_rest": t.rec_rest,
+    }, "OK")
+
+
 @router.get("/exercise-history", summary="Historial de ejercicios (cliente)", description="Última sesión registrada de cada ejercicio indicado, para mostrar la columna 'Anterior'.")
 def client_exercise_history(
     training_ids: Optional[str] = Query(None, description="IDs de ejercicio separados por coma"),
