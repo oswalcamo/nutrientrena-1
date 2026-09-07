@@ -140,6 +140,16 @@ const PELADO = {
   ck('y la referencia general, aparte de lo que le puso su coach',
     (await p.textContent('.ej-ref')).includes('3-4 series'), await p.textContent('.ej-ref'));
 
+  /* Ese campo admite texto libre: el catálogo del cliente trae filas con
+     «Según sensaciones» en vez de una cifra, y añadirle "series" detrás la
+     dejaba en «Según sensaciones series». */
+  const libre = await p.evaluate(() => _fichaHTML(
+    { name: 'X', sets: [], target: null, rest: null, video_url: null, image: null },
+    { rec_series: 'Según sensaciones', rec_reps: null, rec_rest: null,
+      secondary_muscle_names: [], difficulty_names: [] }));
+  ck('una recomendacion en palabras no se queda en "… series"',
+    libre.includes('Según sensaciones') && !libre.includes('sensaciones series'), libre);
+
   // ── Cerrar ───────────────────────────────────────────────────────────────
   await p.locator('.ej-x').click();
   await p.waitForTimeout(150);

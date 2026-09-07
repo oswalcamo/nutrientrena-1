@@ -938,8 +938,17 @@
     /* La referencia general del catálogo, en gris y abajo: lo que manda es lo
        que le puso su coach, y ponerlas al mismo nivel haría dudar de cuál de
        las dos seguir. */
-    var ref = [d.rec_series ? d.rec_series + ' series' : null,
-               d.rec_reps ? d.rec_reps + ' reps' : null,
+    /* «3-4» se lee como "3-4 series"; «Según sensaciones» ya es una frase y
+       ponerle "series" detrás la deja en "Según sensaciones series". El campo
+       admite texto libre —el catálogo del cliente lo trae así en algunas
+       filas—, así que solo se le añade la palabra a lo que es una cifra. */
+    var cifra = function(v){ return /^[\d\s.,\-–x×]+$/.test(String(v || '')); };
+    var conNombre = function(v, palabra){
+      if (!v) return null;
+      return cifra(v) ? (v + ' ' + palabra) : v;
+    };
+    var ref = [conNombre(d.rec_series, 'series'),
+               conNombre(d.rec_reps, 'reps'),
                d.rec_rest ? 'descanso ' + d.rec_rest : null].filter(Boolean);
     if (ref.length) h += '<div class="ej-ref">Referencia del ejercicio: ' + esc(ref.join(' · ')) + '</div>';
 

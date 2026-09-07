@@ -26,9 +26,12 @@ class Training(Base):
     difficulty = Column(Integer, nullable=True)  # nivel más bajo del set (back-compat)
     difficulty_levels = Column(Text, nullable=True)  # niveles separados por coma: 1 Principiante / 2 Intermedio / 3 Avanzado
     movement_pattern = Column(String(255), nullable=True)  # Empuje horizontal, Bisagra de cadera…
-    rec_series = Column(String(40), nullable=True)  # series recomendadas, ej. "3-4"
-    rec_reps = Column(String(40), nullable=True)    # reps recomendadas, ej. "8-12"
-    rec_rest = Column(String(40), nullable=True)    # descanso recomendado, ej. "60-90s"
+    # 120 y no 40: la recomendacion no siempre es una cifra. El catalogo del
+    # cliente trae frases enteras —"Continuo: 10-15 min, o 8-10 rondas de
+    # subida/bajada"— y en 40 caracteres se cortaba a media prescripcion.
+    rec_series = Column(String(120), nullable=True)  # series, ej. "3-4"
+    rec_reps = Column(String(120), nullable=True)    # reps, ej. "8-12"
+    rec_rest = Column(String(120), nullable=True)    # descanso, ej. "60-90s"
     state = Column(Integer, default=1)
     # NULL = catálogo maestro de la plataforma, visible para todos. Con valor =
     # ejercicio privado de esa organización.
