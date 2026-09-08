@@ -1,21 +1,24 @@
-"""Lo que el coach ESCRIBIÓ como objetivo, y lo que suman los alimentos.
+"""El objetivo de la dieta y lo que hay de verdad en el plato.
 
-La lista de dietas rellena las cifras que el coach no escribió con lo que suman
-los alimentos: una dieta sin objetivo no sale con cuatro guiones al lado de sus
-comidas. Eso está bien para MIRAR.
+Son dos cosas distintas y se estaban mezclando por los dos lados.
 
-El problema es que `/edit` —la misma respuesta— es lo que carga el FORMULARIO.
-El editor no podía distinguir «el coach escribió 1164» de «los alimentos suman
-1164», así que metía la suma en la casilla del objetivo y al guardar la
-almacenaba como si alguien la hubiera tecleado. Desde ese momento la cifra
-quedaba congelada: se duplicaba la dieta, se le añadía un alimento y la lista
-seguía diciendo lo mismo que la original.
+Al MIRAR: la lista enseñaba la meta escrita. Una dieta con 1164 kcal de
+objetivo y 1572 montadas salía como 1164, y el coach leía esa fila como lo que
+su cliente iba a comer. Ahora las cuatro cifras salen de los alimentos, y la
+meta se ve donde toca —el editor pinta "1572 /1164 · 408 kcal de más"—.
+
+Al EDITAR: `/edit` devuelve las cifras rellenas para poder mirarlas, y esa
+misma respuesta carga el formulario. El editor no podía distinguir «el coach
+escribió 1164» de «los alimentos suman 1164», así que metía la suma en la
+casilla del objetivo y al guardar la almacenaba como si alguien la hubiera
+tecleado. Desde ahí la cifra quedaba congelada.
 
 Lo que hay que dejar sujeto:
 
-  · Que la respuesta diga por separado lo escrito y lo calculado.
+  · Que la respuesta diga por separado lo escrito (`objetivo`) y lo calculado.
+  · Que las cifras que se enseñan salgan de los alimentos, no de la meta.
   · Que abrir una dieta y guardarla SIN TOCAR NADA no le invente un objetivo.
-  · Y que entonces sí: añadir un alimento mueve las cifras de la lista.
+  · Y que la meta escrita no se pierda: el editor la necesita entera.
 """
 import uuid
 
@@ -149,9 +152,10 @@ def test_ABRIR_Y_GUARDAR_SIN_TOCAR_NADA_NO_INVENTA_UN_OBJETIVO(client, seed, adm
     assert _en_lista(client, h, did)["calories"] == 932
 
 
-def test_y_el_objetivo_que_SI_se_escribio_no_se_pisa(client, seed, admin_headers):
-    """Lo de siempre: una plantilla de 1800 kcal sigue siendo de 1800 aunque la
-    comida de hoy sume 900."""
+def test_EL_OBJETIVO_SE_CONSERVA_AUNQUE_LA_LISTA_ENSENE_LO_QUE_HAY(client, seed, admin_headers):
+    """Una plantilla de 1800 kcal con 899 en el plato: la lista dice 899 —es lo
+    que el cliente se va a comer— y la meta sigue guardada para el editor, que
+    la pinta al lado ("899 /1800"). Guardar desde el formulario no la pierde."""
     suf = uuid.uuid4().hex[:8]
     h, _det, _hc = _monta(client, admin_headers, suf)
     aceite = _alimento(f"Aceite {suf}", 899.0, 100.0, "g")
@@ -160,5 +164,25 @@ def test_y_el_objetivo_que_SI_se_escribio_no_se_pisa(client, seed, admin_headers
     cuerpo = _como_lo_manda_el_navegador(_edit(client, h, did))
     cuerpo["id"] = did
     client.put(f"/api/diets/{did}/update", headers=h, json=cuerpo)
-    assert _en_lista(client, h, did)["calories"] == 1800
-    assert _edit(client, h, did)["objetivo"]["calories"] == 1800
+
+    assert _en_lista(client, h, did)["calories"] == 899, "la lista tiene que decir lo que hay"
+    assert _edit(client, h, did)["objetivo"]["calories"] == 1800, "y la meta no se pierde"
+    assert _edit(client, h, did)["goal_mode"] == "kcal"
+
+
+def test_EL_CASO_DE_LA_CAPTURA(client, seed, admin_headers):
+    """«dia martes»: meta de 1164 kcal y 1572 en el plato —899 de aceite y 673
+    de tocino—. La fila decía 1164, que es lo que el coach había puesto de
+    meta, y se leía como lo que su cliente iba a comer."""
+    suf = uuid.uuid4().hex[:8]
+    h, _det, _hc = _monta(client, admin_headers, suf)
+    aceite = _alimento(f"Aceite de cacahuete {suf}", 899.0, 100.0, "g")
+    tocino = _alimento(f"Tocino {suf}", 673.0, 100.0, "g")
+    did = _crea(client, h, f"dia martes {suf}", calories=1164, foods=[
+        {"name": "Media mañana", "time": "11:00", "detail": [
+            {"aliment_id": aceite, "quantity_calc": 100, "order": 0},
+            {"aliment_id": tocino, "quantity_calc": 100, "order": 1}]}])
+
+    assert _en_lista(client, h, did)["calories"] == 1572, "la fila sigue diciendo la meta"
+    # Y la meta sigue ahí: el editor la pinta al lado, con lo que se pasa.
+    assert _edit(client, h, did)["objetivo"]["calories"] == 1164
