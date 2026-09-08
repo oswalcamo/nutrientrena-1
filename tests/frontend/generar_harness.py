@@ -23,6 +23,11 @@ a = MODULO.index('/* \u2500\u2500 Arrastrar d\u00edas')
 b = MODULO.index('function startRenameDay(', a)
 drag = MODULO[a:b]
 
+# Renombrar un día va en el mismo banco: es el otro sitio donde un clic sobre
+# la tarjeta hace algo distinto de seleccionarla.
+c = MODULO.index('const BLOCK_LABELS=', b)
+renombrar = MODULO[b:c]
+
 harness = """<!doctype html><html><head><meta charset="utf-8"><style>%s</style></head>
 <body>
 <div class="days-panel" style="width:260px"><div class="days-list" id="daysList"></div></div>
@@ -35,16 +40,16 @@ let routineData={days_list:[
   {day_name:'Mi\u00e9rcoles',blocks:[{exercises:[1,2,3]}]},
 ]};
 function renderBlocks(){}
-function startRenameDay(){}
 function duplicateDay(){}
 function removeDay(){}
 function selectDay(idx){selectedDayIdx=idx;renderDaysList();renderBlocks();}
 %s
 %s
+%s
 window.__orden=()=>routineData.days_list.map(d=>d.day_name);
 window.__sel=()=>selectedDayIdx;
 renderDaysList();
-</script></body></html>""" % (css, render, drag)
+</script></body></html>""" % (css, render, drag, renombrar)
 
 destino = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'harness.html')
 open(destino, 'w').write(harness)

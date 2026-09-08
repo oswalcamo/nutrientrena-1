@@ -62,6 +62,12 @@ function renderDaysList(){
       // Tras arrastrar de verdad no hay que seleccionar: el puntero acaba
       // sobre otra tarjeta y cambiaría de día sin que nadie lo pida.
       if(_dayDrag.justDragged)return;
+      /* Ya seleccionado: no hay nada que cambiar, y repintar la lista sí tiene
+         consecuencias. Se lleva por delante el recuadro de renombrar, y hacía
+         que el doble clic sobre el nombre —lo que promete su propio tooltip—
+         no funcionara nunca: el primer clic repintaba y el segundo caía sobre
+         un elemento recién creado que nunca llegaba a ver el doble clic. */
+      if(i===selectedDayIdx)return;
       selectDay(i);
     });
     container.appendChild(chip);
@@ -190,6 +196,13 @@ function startRenameDay(idx,chip){
   const nameSpan=chip.querySelector('.day-chip-name');if(!nameSpan)return;
   const input=document.createElement('input');input.className='day-chip-input';input.value=routineData.days_list[idx].day_name;
   nameSpan.replaceWith(input);input.focus();input.select();
+  /* El recuadro vive DENTRO de la tarjeta del día, y la tarjeta entera
+     selecciona su día al hacer clic —lo que repinta la lista y se lleva por
+     delante este recuadro con lo que hubiera escrito—. Así que un clic aquí
+     dentro se queda aquí: es para poner el cursor entre dos letras y corregir
+     una parte, no para cambiar de día. */
+  ['pointerdown','mousedown','click','dblclick'].forEach(ev=>
+    input.addEventListener(ev,e=>e.stopPropagation()));
   const commit=()=>{const newName=input.value.trim()||routineData.days_list[idx].day_name;routineData.days_list[idx].day_name=newName;renderDaysList();if(idx===selectedDayIdx){const titleEl=document.getElementById('selectedDayName');if(titleEl)titleEl.textContent=newName;}};
   input.addEventListener('blur',commit);
   input.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();input.blur();}if(e.key==='Escape'){input.value=routineData.days_list[idx].day_name;input.blur();}});
