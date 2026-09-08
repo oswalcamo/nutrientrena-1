@@ -102,6 +102,21 @@ Un ejercicio que **ya existe con el mismo nombre se actualiza** con lo del
 CSV: la entrega es la versión buena. Esta carga no borra nada.
 
 `--inspeccionar` es el paso que importa: saca los grupos musculares del CSV
-que **no existen** en la base. No se crean solos — si el CSV dice
-«Isquiotibiales» y en la base pone «Femoral», crear uno nuevo deja el catálogo
-partido en dos sin que nadie se entere. Esos hay que resolverlos a mano antes.
+que **no existen** en la base. No se crean solos — crear «Hombros» al lado de
+«Hombro» deja el catálogo partido en dos, y el coach que filtre por uno no ve
+los ejercicios del otro.
+
+De los 21 que nombra el CSV, 17 coinciden por su nombre. Los otros cuatro se
+emparejaron a mano en `ALIAS_GRUPOS` (en `scripts/cargar_ejercicios.py`),
+mirando antes con `--grupos` cómo se llaman los de la base:
+
+| El CSV dice | La base tiene | Ejercicios |
+|---|---|---|
+| Hombros | Hombro | 39 |
+| Glúteos | Glúteo | 43 |
+| Femorales / isquiosurales | Isquiotibiales | 20 |
+| Psoas / flexores de cadera | Psoas | 5 |
+
+Si el cliente añade un grupo nuevo en Notion, `--inspeccionar` lo dirá y habrá
+que decidir: emparejarlo con uno que ya hay, o crearlo a mano en la
+plataforma.
