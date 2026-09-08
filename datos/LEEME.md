@@ -69,20 +69,27 @@ músculos, su material y su vídeo. Vienen con **130 imágenes** aparte.
   · La carpeta de imágenes trae un `_decisiones-miniaturas.md` que es un
     informe interno, no un ejercicio. Se filtra por extensión.
 
-`ejercicios-imagenes.json` es el mapa `nombre de archivo → URL pública en R2`
-que deja el primer paso. Está en el repositorio para que la carga a la base se
-pueda repetir sin volver a subir un solo byte.
+Las 130 imágenes **ya están en R2**, subidas conservando el nombre de archivo
+del CSV, así que la URL de cada una es la base más el nombre y no hace falta
+ningún mapa. La base está escrita en `scripts/cargar_ejercicios.py`
+(`BASE_IMAGENES`) y no se pasa por la línea de órdenes: es la ruta de lo que
+hay en producción, y con ella a mano la carga daría un resultado distinto
+según quién la lance.
+
+`ejercicios-imagenes.json` solo hace falta para imágenes subidas con OTRO
+nombre —lo que deja `subir_imagenes_ejercicios.py`, que les pone un hash—.
+Si existe, manda sobre la base. Sirve para las dos que todavía no están
+generadas.
 
 ### Cómo se carga
 
-Son dos pasos a propósito: subir 130 ficheros depende de la red y de las
-credenciales, escribir en la base no. Si la carga falla a la mitad no hay que
-volver a empezar por las imágenes.
+La comprobación de las imágenes va primero y aparte: no toca la base, y es la
+única forma de saber que las 130 están donde el CSV dice. Un acento perdido o
+un `.jpg` guardado como `.png` deja la ficha del ejercicio con un hueco, y eso
+no lo ve nadie hasta que un cliente la abre en el gimnasio.
 
-    # 1. Las imágenes, a R2. Necesita AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY,
-    #    AWS_BUCKET y R2_PUBLIC_URL en el entorno.
-    python scripts/subir_imagenes_ejercicios.py --carpeta ~/entrega/imagenes-ejercicios
-    python scripts/subir_imagenes_ejercicios.py --carpeta ~/entrega/imagenes-ejercicios --ejecutar
+    # 1. Que las 130 imágenes estén donde dice el CSV. No toca la base.
+    python scripts/cargar_ejercicios.py --comprobar-imagenes
 
     # 2. Los ejercicios, a la base.
     python scripts/copia_seguridad.py            # primero esto

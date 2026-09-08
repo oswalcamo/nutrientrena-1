@@ -134,7 +134,25 @@ def test_UN_HUECO_DEL_CSV_QUEDA_VACIO_NO_REVIENTA(tmp_path):
     assert sin_foto["image"] is None
 
 
-def test_la_imagen_sale_del_mapa_de_lo_subido(tmp_path):
+def test_LA_IMAGEN_CUELGA_DE_LA_BASE_CON_SU_NOMBRE(tmp_path):
+    """Las 130 se subieron a R2 conservando el nombre del CSV, así que la URL
+    es la base más el nombre y no hace falta ningún mapa."""
+    fila = ce.leer_csv(_csv(tmp_path))[0]
+    assert ce.a_columnas(fila, {}, {})["image"] == \
+        ce.BASE_IMAGENES + "press-banca.png"
+
+
+def test_la_base_apunta_a_donde_estan_de_verdad():
+    """La URL que el cliente comprobó en el navegador. Si esto cambia sin que
+    nadie lo mire, 130 ejercicios se quedan con la foto rota."""
+    assert ce.url_de_imagen("abdominales-bicicleta.png") == (
+        "https://pub-397ed3b6f1d1480d8c17d960513a3c78.r2.dev"
+        "/imagenes-ejercicios/abdominales-bicicleta.png")
+
+
+def test_y_una_subida_con_otro_nombre_manda_sobre_la_base(tmp_path):
+    """La salida de subir_imagenes_ejercicios.py, que pone un hash en la clave.
+    Sirve para las dos que faltan por generar."""
     fila = ce.leer_csv(_csv(tmp_path))[0]
     d = ce.a_columnas(fila, {"press-banca.png": "https://cdn/ejercicios/press-abc.png"}, {})
     assert d["image"] == "https://cdn/ejercicios/press-abc.png"
@@ -231,10 +249,10 @@ def test_los_acentos_no_hacen_que_un_grupo_parezca_nuevo(tmp_path):
     assert avisos["grupos_desconocidos"] == {}
 
 
-def test_se_avisa_de_lo_que_falta_por_subir_y_de_los_huecos(tmp_path):
-    filas = ce.leer_csv(_csv(tmp_path))
-    avisos = ce.revisar(filas, {"press-banca.png": "https://x/1.png"}, [])
-    assert avisos["imagen_no_subida"] == ["burpees.png"]
+def test_se_avisa_de_los_huecos_de_la_entrega(tmp_path):
+    """Los que el cliente ya dijo que faltan. Que la imagen ESTÉ subida no lo
+    sabe el CSV —solo R2—, y eso se pregunta con --comprobar-imagenes."""
+    avisos = ce.revisar(ce.leer_csv(_csv(tmp_path)), {}, [])
     assert avisos["sin_imagen"] == ["Elevación de piernas colgado"]
     assert avisos["sin_video"] == ["Burpees"]
 

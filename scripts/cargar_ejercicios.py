@@ -2,8 +2,12 @@
 
 La entrega son 132 filas de la biblioteca de Notion que todavía no estaban en
 la plataforma, con su descripción, sus músculos, su material y su vídeo. Las
-imágenes se suben aparte —`scripts/subir_imagenes_ejercicios.py`— y aquí se
-lee el mapa que aquél deja.
+130 imágenes ya están en R2 con su nombre de archivo, así que la URL de cada
+una sale de `BASE_IMAGENES` más ese nombre.
+
+Antes de cargar conviene `--comprobar-imagenes`: pregunta a R2 por las 130 y
+dice cuáles no están. Es lo único que distingue una imagen que falta de una
+que se subió con otro nombre, y las dos acaban igual — un hueco en la ficha.
 
 Un ejercicio que YA EXISTE con el mismo nombre se actualiza con lo del CSV.
 Es lo acordado: la entrega es la versión buena.
@@ -29,8 +33,16 @@ import unicodedata
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, RAIZ)
 
-CSV_POR_DEFECTO = os.path.join(RAIZ, "datos", "ejercicios-pendientes.csv")
+CSV_POR_DEFECTO = os.path.join(RAIZ, "datos", "ejercicios_pendientes_alzum.csv")
 MAPA_POR_DEFECTO = os.path.join(RAIZ, "datos", "ejercicios-imagenes.json")
+
+# Dónde quedaron las imágenes de esta entrega. Se subieron a R2 conservando el
+# nombre de archivo del CSV, así que la URL de cada una es esta base más el
+# nombre y no hace falta ningún mapa. Se deja escrito aquí —y no en el
+# ordenador de quien lance el script— porque ES la ruta de lo que hay en
+# producción: con la base a mano, la carga da un resultado distinto según quién
+# la lance y nadie sabe después qué se cargó.
+BASE_IMAGENES = "https://pub-397ed3b6f1d1480d8c17d960513a3c78.r2.dev/imagenes-ejercicios/"
 
 COLUMNAS = [
     "nombre_ejercicio", "otros_nombres", "tipo_ejercicio",
@@ -163,6 +175,24 @@ def leer_csv(ruta):
         return [dict(fila) for fila in lector]
 
 
+def url_de_imagen(nombre, mapa=None, base=BASE_IMAGENES):
+    """La URL pública de la imagen que nombra el CSV.
+
+    Una sola regla, en un solo sitio: si alguien la subió con otro nombre está
+    en el mapa y manda el mapa; si no, la imagen conserva su nombre y cuelga de
+    la base. Sin nombre en el CSV no hay imagen — son dos ejercicios de la
+    entrega que todavía no la tienen, y un hueco es un hueco.
+    """
+    nombre = (nombre or "").strip()
+    if not nombre:
+        return None
+    if mapa and nombre in mapa:
+        return mapa[nombre]
+    if not base:
+        return None
+    return base.rstrip("/") + "/" + nombre
+
+
 def revisar(filas, mapa_imagenes, grupos_conocidos):
     """Qué trae el fichero y qué no se va a poder traducir.
 
@@ -171,7 +201,7 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
     """
     avisos = {"sin_nombre": [], "grupos_desconocidos": {}, "tipos": set(),
               "lugares": set(), "niveles": set(), "sin_imagen": [],
-              "imagen_no_subida": [], "sin_video": [], "no_cabe": [],
+              "sin_video": [], "no_cabe": [],
               "repetidos": [], "rec_sin_trocear": []}
     vistos = {}
     conocidos = {_norm(g) for g in grupos_conocidos}
@@ -203,11 +233,10 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
         if nivel and nivel not in NIVELES:
             avisos["niveles"].add(fila.get("nivel"))
 
-        imagen = (fila.get("imagen") or "").strip()
-        if not imagen:
+        # Que el CSV nombre una imagen no quiere decir que esté subida: eso
+        # solo lo sabe R2, y se pregunta con --comprobar-imagenes.
+        if not (fila.get("imagen") or "").strip():
             avisos["sin_imagen"].append(nombre)
-        elif imagen not in mapa_imagenes:
-            avisos["imagen_no_subida"].append(imagen)
         if not (fila.get("url_video") or "").strip():
             avisos["sin_video"].append(nombre)
 
@@ -251,7 +280,7 @@ def a_columnas(fila, mapa_imagenes, grupos_por_nombre):
         "muscle_group_id": principal,
         "secondary_muscle_group_id": secundarios[0] if secundarios else None,
         "secondary_muscle_group_ids": ",".join(str(i) for i in secundarios) or None,
-        "image": mapa_imagenes.get(imagen),
+        "image": url_de_imagen(imagen, mapa_imagenes),
         "video_url": g("url_video"),
         "exercise_type": TIPOS.get(_norm(fila.get("tipo_ejercicio"))),
         "location": LUGARES.get(_norm(fila.get("localizacion"))),
@@ -306,7 +335,6 @@ def _pinta_avisos(avisos):
     bloque("Localizaciones no reconocidas", avisos["lugares"])
     bloque("Niveles no reconocidos", avisos["niveles"])
     bloque("Sin imagen en el CSV", avisos["sin_imagen"])
-    bloque("Imagen del CSV que NO está subida a R2", avisos["imagen_no_subida"])
     bloque("Sin vídeo", avisos["sin_video"])
     bloque("NO CABE en su columna (hay que arreglarlo antes de cargar)",
            avisos["no_cabe"],
@@ -316,6 +344,46 @@ def _pinta_avisos(avisos):
     if not hay:
         print("\nNada que avisar: el fichero se traduce entero.")
     return hay
+
+
+def _comprobar_imagenes(filas, mapa):
+    """Pide cada imagen y dice cuáles no están. Devuelve 1 si falta alguna.
+
+    Con 130 ficheros subidos a mano basta un acento perdido o un `.jpg` que se
+    guardó como `.png` para que la ficha del ejercicio salga con un hueco. Eso
+    no lo ve nadie hasta que un cliente abre esa ficha en el gimnasio.
+    """
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError, URLError
+
+    pendientes = []
+    for fila in filas:
+        n = (fila.get("imagen") or "").strip()
+        if n:
+            pendientes.append((fila.get("nombre_ejercicio"), n, url_de_imagen(n, mapa)))
+
+    print(f"\nComprobando {len(pendientes)} imágenes…")
+    faltan = []
+    for i, (ejercicio, archivo, url) in enumerate(pendientes, 1):
+        try:
+            with urlopen(Request(url, method="HEAD"), timeout=15) as r:
+                if r.status >= 400:
+                    faltan.append((ejercicio, archivo, r.status))
+        except HTTPError as e:
+            faltan.append((ejercicio, archivo, e.code))
+        except URLError as e:
+            faltan.append((ejercicio, archivo, str(e.reason)))
+        if i % 25 == 0:
+            print(f"  {i}/{len(pendientes)}…")
+
+    if not faltan:
+        print(f"\nLas {len(pendientes)} están. La carga puede poner la imagen de todas.")
+        return 0
+    print(f"\nNO ESTÁN {len(faltan)} de {len(pendientes)}:")
+    for ejercicio, archivo, motivo in faltan:
+        print(f"  · {archivo}  ({ejercicio}) → {motivo}")
+    print("\nEsos ejercicios entrarían con un hueco donde va la foto.")
+    return 1
 
 
 def main():
@@ -331,10 +399,9 @@ def main():
                     help="Contar en la base cuántos de estos ejercicios están")
     ap.add_argument("--usuario", type=int, default=None,
                     help="created_user_id de los ejercicios nuevos")
+    ap.add_argument("--comprobar-imagenes", action="store_true",
+                    help="Pedir cada imagen a R2 para ver que está de verdad")
     args = ap.parse_args()
-
-    from app.database import SessionLocal
-    from app.models.training import Training
 
     filas = leer_csv(args.csv)
     mapa = {}
@@ -343,7 +410,19 @@ def main():
             mapa = json.load(f)
 
     print(f"CSV:      {args.csv}  ({len(filas)} filas)")
-    print(f"Imágenes: {args.imagenes}  ({len(mapa)} subidas)")
+    print(f"Imágenes: {BASE_IMAGENES}")
+    if mapa:
+        print(f"          + {len(mapa)} con nombre propio en {args.imagenes}")
+
+    # Va antes de tocar la base: no necesita base de datos y es la única forma
+    # de saber que las 130 están DONDE dice el CSV. Una imagen renombrada al
+    # subirla se ve como un hueco en el móvil del cliente y nadie se entera.
+    if args.comprobar_imagenes:
+        raise SystemExit(_comprobar_imagenes(filas, mapa))
+
+    from app.database import SessionLocal
+    from app.models.training import Training
+
     print(f"Base:     {_contra_que_base()}")
 
     db = SessionLocal()
