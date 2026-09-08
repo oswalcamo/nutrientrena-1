@@ -130,24 +130,24 @@ def _serialize(diet: Diet) -> dict:
         "fats": det0.fats if det0 else None,
         "fiber": det0.fiber if det0 else None,
     }
-    # Lo que el coach escribió como objetivo manda; lo que no escribió se
-    # rellena con lo que suman los alimentos de verdad. Cada cifra por su
-    # cuenta: en modo "kcal" hay kcal escritas pero ningún macro, y antes
-    # bastaba con tener kcal para que Prot/Carb/Grasa salieran vacíos en la
-    # lista, con la dieta entera montada debajo.
+    # Las cifras que se ENSEÑAN son las de la comida que hay montada, no el
+    # objetivo. Antes mandaba lo escrito: una plantilla con 1164 kcal de meta y
+    # 1572 en el plato salía en la lista como 1164, y el coach leía esa fila
+    # como lo que su cliente iba a comer. El objetivo no desaparece —vive en
+    # `objetivo`, y el editor enseña "1572 /1164 · 408 kcal de más"—, pero es
+    # una meta, no un dato de la dieta.
+    #
+    # Sin nada montado no hay nada que sumar, y ahí sí queda lo escrito: una
+    # plantilla recién creada con su meta puesta no puede salir con un 0.
     k, p, c, f = _diet_food_totals(diet)
     if k > 0:
-        if not data.get("calories"):
-            data["calories"] = round(k)
+        data["calories"] = round(k)
         det = data.get("detail")
         if not isinstance(det, dict):
             det = {}
-        if not det.get("proteins"):
-            det["proteins"] = round(p, 1)
-        if not det.get("carbs"):
-            det["carbs"] = round(c, 1)
-        if not det.get("fats"):
-            det["fats"] = round(f, 1)
+        det["proteins"] = round(p, 1)
+        det["carbs"] = round(c, 1)
+        det["fats"] = round(f, 1)
         data["detail"] = det
     return data
 

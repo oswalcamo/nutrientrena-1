@@ -251,8 +251,13 @@ def _diet_meals_macros(diet):
     guion en proteínas, carbohidratos y grasas, y el día sin kcal, con las
     comidas enteras debajo.
 
-    Lo escrito manda; lo que falte se suma de los alimentos, con la misma
-    cuenta que usa la biblioteca del coach.
+    Se enseña LO QUE HAY EN EL PLATO, no la meta que escribió el coach. Con la
+    meta mandando, un día con 1164 kcal de objetivo y 1572 montadas le decía al
+    cliente 1164: la cifra que tiene delante mientras come tiene que ser la de
+    lo que se está comiendo. Y es la misma cuenta que ve su coach en la
+    biblioteca, que si no cada uno lee un número distinto del mismo día.
+
+    Sin nada montado no hay nada que sumar, y ahí queda lo escrito.
     """
     kcal = diet.calories
     prot = carb = fat = None
@@ -260,14 +265,10 @@ def _diet_meals_macros(diet):
         prot, carb, fat = diet.detail.proteins, diet.detail.carbs, diet.detail.fats
     tk, tp, tc, tf = totales_de_dieta(diet)
     if tk > 0:
-        if not kcal:
-            kcal = round(tk)
-        if not prot:
-            prot = round(tp, 1)
-        if not carb:
-            carb = round(tc, 1)
-        if not fat:
-            fat = round(tf, 1)
+        kcal = round(tk)
+        prot = round(tp, 1)
+        carb = round(tc, 1)
+        fat = round(tf, 1)
     meals = []
     for food in diet.foods:
         mk = 0.0

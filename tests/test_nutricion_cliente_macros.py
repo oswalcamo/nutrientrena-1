@@ -13,7 +13,8 @@ Lo que hay que dejar sujeto:
 
   · Que el cliente vea los macros de su día aunque nadie los escribiera.
   · Que respeten la porción de cada alimento, como en todas partes.
-  · Que lo que el coach SÍ escribió mande.
+  · Que se le enseñe LO QUE HAY EN EL PLATO y no la meta del coach: la cifra
+    que tiene delante mientras come es la de lo que se está comiendo.
   · Y que el coach y el cliente digan lo mismo de la misma dieta.
 """
 import uuid
@@ -83,8 +84,13 @@ def test_RESPETA_LA_PORCION_DEL_ALIMENTO(client, seed, admin_headers):
     assert dia["protein"] == 20, dia      # 10 g por unidad × 2
 
 
-def test_LO_QUE_EL_COACH_ESCRIBIO_MANDA(client, seed, admin_headers):
-    """El objetivo son 120 g de proteína aunque hoy la comida sume 20."""
+def test_AL_CLIENTE_SE_LE_ENSEÑA_LO_QUE_HAY_EN_EL_PLATO(client, seed, admin_headers):
+    """Aunque el coach haya puesto una meta de 1500 kcal, el día tiene 330.
+
+    Con la meta mandando, el cliente abría su nutrición, leía 1500 y debajo
+    tenía la comida de 330. La cifra que tiene delante mientras come tiene que
+    ser la de lo que se está comiendo; la meta es cosa del coach y se ve en su
+    editor."""
     suf = uuid.uuid4().hex[:8]
     h_coach, det_cli, h_cli = _monta(client, admin_headers, suf)
     pollo = _alimento(f"Pollo {suf}", 165.0, 100.0, "g")
@@ -93,7 +99,7 @@ def test_LO_QUE_EL_COACH_ESCRIBIO_MANDA(client, seed, admin_headers):
                     calories=1500, proteins=120, carbs=100, fats=50)
 
     dia = _dia_de_hoy(client, h_cli)
-    assert (dia["kcal"], dia["protein"], dia["carbs"], dia["fats"]) == (1500, 120, 100, 50), dia
+    assert (dia["kcal"], dia["protein"], dia["carbs"], dia["fats"]) == (330, 20, 2, 10), dia
 
 
 def test_EL_COACH_Y_EL_CLIENTE_DICEN_LO_MISMO(client, seed, admin_headers):
