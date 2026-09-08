@@ -19,6 +19,9 @@
       --indigo-pale:#EEF2FF;
       --gray-bg:#F8FAFC;
       --sidebar-w:240px;
+      /* El contenido va en una columna de este ancho, centrada. */
+      --col-ancho:1240px;
+      --sombra:0 1px 2px rgba(16,24,40,.05),0 6px 16px rgba(16,24,40,.05);
     }
     body{font-family:'Space Grotesk','Segoe UI',system-ui,sans-serif;background:var(--gray-bg);display:flex;height:100vh;overflow:hidden;}
 
@@ -75,18 +78,26 @@
     /* ── Main ── */
     .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
 
+    /* El saludo va SOBRE el fondo de la página, no en una franja blanca con su
+       raya: en el diseño la cabecera y las tarjetas son la misma columna, y la
+       franja partía la pantalla en dos antes de empezar a leer. */
     .topbar{
-      background:#fff;padding:16px 28px;
+      background:transparent;padding:28px 28px 26px;
       display:flex;align-items:center;justify-content:space-between;
-      border-bottom:1px solid #E5E7EB;flex-shrink:0;
+      border-bottom:none;flex-shrink:0;
+      width:100%;max-width:var(--col-ancho);margin:0 auto;
     }
-    .topbar-left h1{font-size:20px;font-weight:700;color:#111827;}
-    .topbar-left p{font-size:13px;color:#6B7280;margin-top:2px;}
+    .topbar-left h1{font-size:27px;font-weight:800;color:#111827;letter-spacing:-.4px;}
+    .topbar-left p{font-size:13.5px;color:#6B7280;margin-top:4px;}
     .topbar-right{display:flex;align-items:center;gap:12px;}
     .badge-online{display:flex;align-items:center;gap:6px;font-size:13px;color:#6B7280;background:#F0FDF4;border:1px solid #BBF7D0;padding:6px 12px;border-radius:20px;}
     .dot-green{width:7px;height:7px;background:#22C55E;border-radius:50%;}
 
-    .content{flex:1;overflow-y:auto;padding:24px 28px;}
+    /* Una columna centrada, no todo el ancho de la pantalla. En un monitor
+       grande las tarjetas se estiraban hasta perder la relación entre sus
+       cifras, y la fila de clientes acababa siendo casi toda hueco. */
+    .content{flex:1;overflow-y:auto;padding:0 28px 40px;}
+    .kpi-grid,.two-col{width:100%;max-width:calc(var(--col-ancho) - 56px);margin-left:auto;margin-right:auto;}
 
     /* ── Cabecera ── */
     .head-ayuda{
@@ -98,14 +109,14 @@
     .head-ayuda:hover{border-color:var(--indigo);color:var(--indigo);}
 
     /* ── Indicadores ── */
-    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px;}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px;}
     .kpi-card{
-      background:#fff;border-radius:14px;padding:18px 20px 16px;
-      border:1px solid #E9EBEF;box-shadow:0 1px 3px rgba(16,24,40,.04);
-      display:flex;flex-direction:column;gap:11px;
+      background:#fff;border-radius:16px;padding:20px 22px 18px;
+      border:none;box-shadow:var(--sombra);
+      display:flex;flex-direction:column;gap:12px;
     }
     .kpi-top{display:flex;align-items:center;justify-content:space-between;}
-    .kpi-icon{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+    .kpi-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
     .kpi-icon.indigo{background:#EEF2FF;}
     .kpi-icon.green {background:#F0FDF4;}
     .kpi-icon.amber {background:#FFFBEB;}
@@ -115,9 +126,9 @@
     .kpi-flecha{font-size:15px;line-height:1;color:#9CA3AF;}
     .kpi-flecha.up{color:#16A34A;}
     .kpi-flecha.down{color:#DC2626;}
-    .kpi-val{font-size:31px;font-weight:800;color:#111827;line-height:1;}
-    .kpi-label{font-size:13.5px;color:#374151;font-weight:500;margin-top:-4px;}
-    .kpi-sub{font-size:11.5px;color:#9CA3AF;margin-top:-6px;}
+    .kpi-val{font-size:32px;font-weight:800;color:#111827;line-height:1;letter-spacing:-1px;}
+    .kpi-label{font-size:14px;color:#374151;font-weight:500;margin-top:-4px;}
+    .kpi-sub{font-size:12px;color:#9CA3AF;margin-top:-7px;}
 
     /* ── Dos columnas ── */
     .two-col{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:stretch;}
@@ -125,17 +136,17 @@
     /* ── Tarjeta ── */
     /* La tarjeta crece hasta donde llegue su columna y es el cuerpo el que se
        estira, para que el pie quede abajo del todo en las dos. */
-    .card{background:#fff;border-radius:14px;border:1px solid #E9EBEF;box-shadow:0 1px 3px rgba(16,24,40,.04);min-width:0;display:flex;flex-direction:column;}
+    .card{background:#fff;border-radius:16px;border:none;box-shadow:var(--sombra);min-width:0;display:flex;flex-direction:column;}
     .card-body{flex:1;}
-    .card-head{display:flex;align-items:center;gap:11px;padding:16px 20px;border-bottom:1px solid #F1F2F5;min-width:0;}
+    .card-head{display:flex;align-items:center;gap:11px;padding:18px 20px;border-bottom:1px solid #F1F2F5;min-width:0;}
     .card-head>div{min-width:0;}
     .card-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#F3F4F6;}
-    .card-title{font-size:14px;font-weight:700;color:#111827;}
-    .card-sub{font-size:11.5px;color:#9CA3AF;margin-top:1px;}
+    .card-title{font-size:15px;font-weight:700;color:#111827;}
+    .card-sub{font-size:12px;color:#9CA3AF;margin-top:2px;}
     .card-badge{
       margin-left:auto;display:flex;align-items:center;gap:5px;
-      background:#F3F4F6;color:#6B7280;font-size:11.5px;font-weight:600;
-      padding:4px 10px;border-radius:20px;white-space:nowrap;
+      background:#FFFBEB;color:#B45309;font-size:11.5px;font-weight:600;
+      padding:5px 11px;border-radius:20px;white-space:nowrap;
     }
     .card-action{margin-left:auto;font-size:12.5px;color:var(--indigo);text-decoration:none;font-weight:600;white-space:nowrap;}
     .card-action:hover{text-decoration:underline;}
