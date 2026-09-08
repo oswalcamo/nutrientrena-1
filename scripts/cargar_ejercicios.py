@@ -69,7 +69,15 @@ NIVELES = {"principiante": 1, "intermedio": 2, "avanzado": 3}
 # Se escribe el nombre TAL COMO ESTÁ EN LA BASE: si no existe, el aviso salta
 # igual y no se carga nada a ciegas.
 ALIAS_GRUPOS = {
-    # "hombros": "Hombro",
+    # Plural en el CSV, singular en la base. Son el mismo músculo.
+    "hombros": "Hombro",
+    "gluteos": "Glúteo",
+    # Los isquiosurales y los femorales son el mismo grupo: la cara posterior
+    # del muslo. La base lo llama por el nombre que usa el coach.
+    "femorales / isquiosurales": "Isquiotibiales",
+    # El psoas es el principal flexor de cadera; la base lo tiene por su
+    # nombre, sin la coletilla.
+    "psoas / flexores de cadera": "Psoas",
 }
 
 # Lo que cabe en cada columna de `trainings`. Se comprueba ANTES de escribir:

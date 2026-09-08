@@ -424,3 +424,57 @@ def test_EL_AVISO_Y_LA_CARGA_MIRAN_POR_EL_MISMO_SITIO(tmp_path, monkeypatch):
     d = ce.a_columnas(filas[0], {}, grupos)
     assert d["secondary_muscle_group_ids"] == "2,3", \
         "y la carga lo resuelve igual, por el alias"
+
+
+# ── El fichero de verdad contra la base de verdad ──────────────────────────
+
+# Los 21 grupos musculares que hay en producción, tal como los devolvió
+# `--grupos`. Están aquí escritos porque son con lo que se emparejaron los
+# nombres del CSV: si mañana alguien renombra «Glúteo» a «Glúteos», esta
+# comprobación falla y se ve, en vez de dejar 43 ejercicios sin grupo.
+GRUPOS_EN_PRODUCCION = [
+    "Abdomen", "Abductores", "Aductores", "Antebrazos", "Bíceps", "Core",
+    "Cuello", "Cuerpo completo", "Cuádriceps", "Espalda", "Gemelos", "Glúteo",
+    "Hombro", "Isquiotibiales", "Lumbares", "Manguito rotador", "Pecho",
+    "Psoas", "Tibial Anterior", "Trapecio", "Tríceps",
+]
+
+CSV_REAL = os.path.join(RAIZ, "datos", "ejercicios_pendientes_alzum.csv")
+
+
+def test_NINGUN_EJERCICIO_DE_LA_ENTREGA_SE_QUEDA_SIN_GRUPO():
+    """Las 132 filas contra los nombres reales de la base. Un ejercicio sin
+    grupo muscular no lo encuentra el coach que filtra por músculo, y son 107
+    los que dependen de los cuatro alias."""
+    filas = ce.leer_csv(CSV_REAL)
+    grupos = {ce._norm(n): i for i, n in enumerate(GRUPOS_EN_PRODUCCION, 1)}
+
+    sueltos = ce.revisar(filas, {}, grupos)["grupos_desconocidos"]
+    assert sueltos == {}, f"quedan grupos sin emparejar: {sorted(sueltos)}"
+
+    sin_principal = [f["nombre_ejercicio"] for f in filas
+                     if f["grupo_muscular_principal"].strip()
+                     and ce.a_columnas(f, {}, grupos)["muscle_group_id"] is None]
+    assert sin_principal == [], sin_principal
+
+
+def test_los_cuatro_alias_apuntan_a_algo_que_existe():
+    """Un alias mal escrito no revienta: deja el hueco callando. Se comprueba
+    contra los nombres de producción, que es donde tiene que acertar."""
+    grupos = {ce._norm(n) for n in GRUPOS_EN_PRODUCCION}
+    rotos = [f"{k} → {v}" for k, v in ce.ALIAS_GRUPOS.items()
+             if ce._norm(v) not in grupos]
+    assert rotos == [], rotos
+
+
+def test_y_la_entrega_entera_se_traduce_sin_avisos_de_formato():
+    """Tipos, sitios y niveles: si el cliente añade una etiqueta nueva en
+    Notion, esto lo dice antes de que entre sin traducir."""
+    av = ce.revisar(ce.leer_csv(CSV_REAL), {}, {ce._norm(n): 1 for n in GRUPOS_EN_PRODUCCION})
+    assert av["tipos"] == set() and av["lugares"] == set() and av["niveles"] == set()
+    assert av["sin_nombre"] == [] and av["repetidos"] == []
+    assert av["no_cabe"] == []
+    # Los huecos que el cliente ya avisó, y ninguno más.
+    assert av["sin_video"] == ["Burpees"]
+    assert av["sin_imagen"] == ["Jalón al pecho con agarre supino",
+                                "Elevación de piernas colgado"]
