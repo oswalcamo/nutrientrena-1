@@ -117,6 +117,19 @@ def _serialize(diet: Diet) -> dict:
         data["goal_mode"] = "kcal"
     else:
         data["goal_mode"] = "libre"
+    # Lo que el coach ESCRIBIÓ, tal cual y sin rellenar. El relleno de abajo
+    # sirve para mirar la dieta; esto es lo que carga el formulario, y sin
+    # separarlo el editor no podía distinguir «el coach escribió 1164» de «los
+    # alimentos suman 1164». Metía la suma en la casilla del objetivo y al
+    # guardar la almacenaba como si alguien la hubiera tecleado: desde ahí la
+    # cifra quedaba congelada y añadir un alimento ya no la movía.
+    data["objetivo"] = {
+        "calories": diet.calories,
+        "proteins": det0.proteins if det0 else None,
+        "carbs": det0.carbs if det0 else None,
+        "fats": det0.fats if det0 else None,
+        "fiber": det0.fiber if det0 else None,
+    }
     # Lo que el coach escribió como objetivo manda; lo que no escribió se
     # rellena con lo que suman los alimentos de verdad. Cada cifra por su
     # cuenta: en modo "kcal" hay kcal escritas pero ningún macro, y antes
