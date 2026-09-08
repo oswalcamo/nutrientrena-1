@@ -382,3 +382,45 @@ def test_se_pregunta_como_pregunta_un_navegador():
         assert vistos and "Mozilla" in vistos[0], vistos
     finally:
         s.shutdown()
+
+
+# ── Los grupos que el CSV llama de otra forma ──────────────────────────────
+#
+# El CSV nombra 21 grupos y en producción existen 17: «Hombros», «Glúteos»,
+# «Femorales / isquiosurales» y «Psoas / flexores de cadera» se llaman de otra
+# manera. Entre los dos primeros suman 82 ejercicios, así que emparejarlos mal
+# —o no emparejarlos— deja media entrega sin grupo muscular, y un ejercicio sin
+# grupo no lo encuentra el coach que filtra por músculo.
+
+def test_UN_ALIAS_EMPAREJA_EL_NOMBRE_DEL_CSV_CON_EL_DE_LA_BASE(monkeypatch):
+    monkeypatch.setattr(ce, "ALIAS_GRUPOS", {"hombros": "Hombro"})
+    assert ce.grupo_id("Hombros", {"hombro": 7}) == 7
+    assert ce.grupo_id("  HOMBROS ", {"hombro": 7}) == 7, "y sin depender de mayúsculas"
+
+
+def test_un_alias_que_apunta_a_algo_que_no_existe_no_inventa_nada(monkeypatch):
+    """Escribir mal el nombre de destino tiene que dejar el hueco a la vista,
+    no colar un id cualquiera."""
+    monkeypatch.setattr(ce, "ALIAS_GRUPOS", {"hombros": "Hombro que no existe"})
+    assert ce.grupo_id("Hombros", {"hombro": 7}) is None
+
+
+def test_sin_alias_el_nombre_manda(monkeypatch):
+    monkeypatch.setattr(ce, "ALIAS_GRUPOS", {"pecho": "Otra cosa"})
+    assert ce.grupo_id("Pecho", {"pecho": 3, "otra cosa": 9}) == 3, \
+        "existiendo por su nombre, el alias no pinta nada"
+
+
+def test_EL_AVISO_Y_LA_CARGA_MIRAN_POR_EL_MISMO_SITIO(tmp_path, monkeypatch):
+    """Si el ensayo dijera que todo cuadra y la carga lo resolviera por otro
+    camino, saldrían 43 ejercicios sin grupo y nadie lo habría visto venir."""
+    monkeypatch.setattr(ce, "ALIAS_GRUPOS", {"hombro": "Deltoides"})
+    filas = ce.leer_csv(_csv(tmp_path))
+    grupos = {"pecho": 1, "triceps": 2, "deltoides": 3,
+              "cuerpo completo": 4, "core": 5}
+
+    assert ce.revisar(filas, {}, grupos)["grupos_desconocidos"] == {}, \
+        "el ensayo dice que cuadra"
+    d = ce.a_columnas(filas[0], {}, grupos)
+    assert d["secondary_muscle_group_ids"] == "2,3", \
+        "y la carga lo resuelve igual, por el alias"

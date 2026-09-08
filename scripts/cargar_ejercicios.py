@@ -60,6 +60,18 @@ LUGARES = {"gimnasio": "gym", "casa": "home", "exterior": "outdoor",
            "aire libre": "outdoor", "ambos": "both"}
 NIVELES = {"principiante": 1, "intermedio": 2, "avanzado": 3}
 
+# Grupos musculares que el CSV llama de una forma y la base de otra. Se
+# emparejan a mano y AQUÍ, a la vista: crear «Hombros» al lado de «Hombro»
+# deja el catálogo partido en dos, y el coach que filtre por uno no ve los
+# ejercicios del otro. Cada línea es una decisión de alguien, no una
+# coincidencia aproximada calculada por el script.
+#
+# Se escribe el nombre TAL COMO ESTÁ EN LA BASE: si no existe, el aviso salta
+# igual y no se carga nada a ciegas.
+ALIAS_GRUPOS = {
+    # "hombros": "Hombro",
+}
+
 # Lo que cabe en cada columna de `trainings`. Se comprueba ANTES de escribir:
 # un recorte silencioso deja media frase con pinta de dato bueno, y nadie mira
 # 132 filas a mano para descubrir cuál se quedó a la mitad.
@@ -83,6 +95,23 @@ def _norm(texto):
 def _lista(celda):
     """Los valores de una celda que trae varios separados por «, »."""
     return [p.strip() for p in str(celda or "").split(",") if p.strip()]
+
+
+def grupo_id(nombre, grupos_por_nombre):
+    """El id del grupo muscular que nombra el CSV, o None si no está.
+
+    Una sola regla y en un solo sitio: por su nombre, y si el CSV lo llama de
+    otra forma, por el alias que alguien decidió. Que la búsqueda y el aviso
+    usen ESTO —y no cada uno lo suyo— es lo que evita que el ensayo diga que
+    todo cuadra y la carga deje 43 ejercicios sin grupo.
+    """
+    clave = _norm(nombre)
+    if clave in grupos_por_nombre:
+        return grupos_por_nombre[clave]
+    alias = ALIAS_GRUPOS.get(clave)
+    if alias:
+        return grupos_por_nombre.get(_norm(alias))
+    return None
 
 
 # Las recomendaciones vienen en UNA celda de texto libre y la tabla tiene tres
@@ -204,7 +233,11 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
               "sin_video": [], "no_cabe": [],
               "repetidos": [], "rec_sin_trocear": []}
     vistos = {}
-    conocidos = {_norm(g) for g in grupos_conocidos}
+    # Lo que `revisar` recibe puede ser la lista de nombres o el mapa que usa
+    # la carga. Se normaliza a mapa para preguntar por el MISMO camino que
+    # `a_columnas`: si el aviso mirara por su cuenta, podrían discrepar.
+    conocidos = (grupos_conocidos if isinstance(grupos_conocidos, dict)
+                 else {_norm(g): True for g in grupos_conocidos})
 
     for i, fila in enumerate(filas, start=2):     # 2 = primera fila de datos
         nombre = (fila.get("nombre_ejercicio") or "").strip()
@@ -220,7 +253,7 @@ def revisar(filas, mapa_imagenes, grupos_conocidos):
         for grupo in ([fila.get("grupo_muscular_principal")]
                       + _lista(fila.get("grupo_muscular_secundario"))):
             g = (grupo or "").strip()
-            if g and _norm(g) not in conocidos:
+            if g and grupo_id(g, conocidos) is None:
                 avisos["grupos_desconocidos"].setdefault(g, []).append(nombre)
 
         tipo = _norm(fila.get("tipo_ejercicio"))
@@ -263,10 +296,10 @@ def a_columnas(fila, mapa_imagenes, grupos_por_nombre):
     """
     g = lambda c: (fila.get(c) or "").strip() or None
 
-    principal = grupos_por_nombre.get(_norm(fila.get("grupo_muscular_principal")))
-    secundarios = [grupos_por_nombre[_norm(x)]
-                   for x in _lista(fila.get("grupo_muscular_secundario"))
-                   if _norm(x) in grupos_por_nombre]
+    principal = grupo_id(fila.get("grupo_muscular_principal"), grupos_por_nombre)
+    secundarios = [i for i in (grupo_id(x, grupos_por_nombre)
+                               for x in _lista(fila.get("grupo_muscular_secundario")))
+                   if i is not None]
 
     nivel = NIVELES.get(_norm(fila.get("nivel")))
     material = ", ".join(_lista(fila.get("equipamiento"))) or None
@@ -307,9 +340,13 @@ def _contra_que_base():
     return url
 
 
-def _grupos(db):
+def _grupos_con_id(db):
     from app.models.muscle_group import MuscleGroup
-    filas = db.query(MuscleGroup.id, MuscleGroup.name).all()
+    return db.query(MuscleGroup.id, MuscleGroup.name).all()
+
+
+def _grupos(db):
+    filas = _grupos_con_id(db)
     return {_norm(n): i for i, n in filas}, [n for _i, n in filas]
 
 
@@ -450,6 +487,8 @@ def main():
                     help="created_user_id de los ejercicios nuevos")
     ap.add_argument("--comprobar-imagenes", action="store_true",
                     help="Pedir cada imagen a R2 para ver que está de verdad")
+    ap.add_argument("--grupos", action="store_true",
+                    help="Listar los grupos musculares que hay en la base")
     args = ap.parse_args()
 
     filas = leer_csv(args.csv)
@@ -477,6 +516,18 @@ def main():
     db = SessionLocal()
     try:
         por_nombre, nombres = _grupos(db)
+
+        if args.grupos:
+            # Para emparejar a mano los que el CSV nombra de otra forma. Sale
+            # con cuántos ejercicios usa cada uno: un grupo con 200 detrás es
+            # el bueno, y uno con 0 puede ser un duplicado de hace tiempo.
+            from sqlalchemy import func
+            usos = dict(db.query(Training.muscle_group_id, func.count(Training.id))
+                        .group_by(Training.muscle_group_id).all())
+            print(f"\nGrupos musculares en la base ({len(nombres)}):")
+            for gid, nombre in sorted(_grupos_con_id(db), key=lambda t: t[1].lower()):
+                print(f"  {usos.get(gid, 0):4}  {nombre}")
+            return
 
         if args.verificar:
             del_csv = {_norm(f.get("nombre_ejercicio")) for f in filas
