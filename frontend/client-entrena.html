@@ -609,7 +609,7 @@
   <div class="desc-caja" role="dialog" aria-modal="true" aria-labelledby="descTit">
     <div class="desc-ico"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
     <h3 id="descTit">¿Seguro que quieres descartar?</h3>
-    <p>Se perderán las series, pesos y notas que hayas registrado en esta sesión.</p>
+    <p id="descQue">Se perderán las series, pesos y notas que hayas registrado en esta sesión.</p>
     <div class="desc-botones">
       <button class="desc-seguir" onclick="cerrarDescartar()">Seguir entrenando</button>
       <button class="desc-si" onclick="descartarEntreno()">Sí, descartar</button>
@@ -1236,10 +1236,13 @@
 
   function pedirDescartar(){
     if (!_ws) return;
-    /* Sin nada marcado ni escrito no hay nada que perder, y avisar de que «se
-       perderán las series, pesos y notas» sería mentira además de una puerta
-       de más para quien ha entrado sin querer. */
-    if (!_haRegistradoAlgo()){ _wsClose(); return; }
+    /* Siempre se pregunta, haya o no algo marcado: descartar no se deshace y
+       la sesión desaparece igual. Lo que cambia es la línea de debajo —avisar
+       de que «se perderán las series, pesos y notas» a quien no ha escrito
+       ninguna sería decirle algo que no es verdad. */
+    document.getElementById('descQue').textContent = _haRegistradoAlgo()
+      ? 'Se perderán las series, pesos y notas que hayas registrado en esta sesión.'
+      : 'Esta sesión no se guardará y no contará como entrenamiento.';
     document.getElementById('descBack').classList.add('open');
   }
   function cerrarDescartar(){

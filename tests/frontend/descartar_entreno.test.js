@@ -5,17 +5,17 @@
    sin querer no busca arriba una salida: llega al final de la lista y espera
    encontrar ahí qué hacer con lo que acaba de empezar.
 
-   Descartar no se deshace, así que se pregunta. Pero solo cuando hay algo que
-   perder: si no se ha marcado ni escrito nada, preguntar «se perderán las
-   series, pesos y notas» es mentira y una puerta de más.
+   Descartar no se deshace, así que SIEMPRE se pregunta. Lo que cambia es la
+   línea de debajo: avisar de que «se perderán las series, pesos y notas» a
+   quien no ha escrito ninguna sería decirle algo que no es verdad.
 
    Lo que hay que dejar sujeto:
 
      · Que el botón esté al final de la rutina, después de los ejercicios.
-     · Que pregunte antes de tirar lo registrado, y que «Seguir entrenando»
-       devuelva la sesión INTACTA.
+     · Que pregunte SIEMPRE, y que «Seguir entrenando» devuelva la sesión
+       INTACTA.
      · Que descartar no guarde nada.
-     · Que sin nada registrado no estorbe con una pregunta.
+     · Que lo que dice que se pierde sea verdad en los dos casos.
      · Y que la «X» de arriba pregunte lo MISMO: es la misma acción.
 
    Se carga la PÁGINA de verdad, con el servidor de mentira.
@@ -84,22 +84,24 @@ const sesion = () => ({
         n.getBoundingClientRect().top >= ult[ult.length - 1].getBoundingClientRect().bottom;
     }));
 
-  // ── Sin nada registrado no estorba ───────────────────────────────────────
+  // ── Pregunta siempre, aunque no haya nada escrito ────────────────────────
   await p.locator('.ws-descartar').click();
   await p.waitForTimeout(200);
-  ck('sin nada registrado descarta sin preguntar',
-    await p.locator('.desc-back.open').count() === 0 && !(await enSesion()));
-  ck('y no guarda nada', (await p.evaluate(() => window.__enviado)).length === 0,
-    await p.evaluate(() => window.__enviado));
-
-  // ── Con algo registrado, pregunta ────────────────────────────────────────
-  await abrir();
+  ck('PREGUNTA SIEMPRE, aunque no se haya registrado nada',
+    await p.locator('.desc-back.open').count() === 1 && await enSesion());
+  ck('y ahí no promete perder unas series que nadie escribió',
+    !(await p.textContent('#descQue')).includes('series, pesos y notas')
+    && (await p.textContent('#descQue')).includes('no se guardará'),
+    await p.textContent('#descQue'));
+  await p.locator('.desc-seguir').click();
   await p.waitForTimeout(150);
+
+  // ── Con algo registrado, dice qué se pierde ──────────────────────────────
   await p.evaluate(() => { _ws.exercises[0].sets[0].done = true; renderWorkout(); });
   await p.locator('.ws-descartar').click();
   await p.waitForTimeout(200);
 
-  ck('CON ALGO REGISTRADO PREGUNTA ANTES DE TIRARLO',
+  ck('con algo registrado también pregunta',
     await p.locator('.desc-back.open').count() === 1);
   ck('con la pregunta y lo que se pierde',
     (await p.textContent('.desc-caja')).includes('Seguro que quieres descartar')
