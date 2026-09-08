@@ -1900,14 +1900,28 @@ async function openForm(id) {
       var j = await r.json();
       var d = j.data || j;
       document.getElementById('f_title').value    = d.title    || '';
-      document.getElementById('f_calories').value = d.calories || '';
       var det = d.detail || {};
-      document.getElementById('f_proteins').value = det.proteins || '';
-      document.getElementById('f_carbs').value    = det.carbs    || '';
-      document.getElementById('f_fats').value     = det.fats     || '';
-      document.getElementById('f_fiber').value    = det.fiber    || '';
-      // Inferir el objetivo nutricional de la plantilla desde los datos guardados
-      setGoalMode((det.proteins || det.carbs || det.fats) ? 'macros' : (d.calories ? 'kcal' : 'libre'));
+      /* Las casillas del objetivo llevan LO QUE EL COACH ESCRIBIÓ, no lo que
+         suman los alimentos. `d.calories` y `d.detail` vienen rellenos para
+         poder mirar la dieta —una sin objetivo no sale con cuatro guiones al
+         lado de sus comidas—, y cargar eso aquí metía la suma en la casilla
+         del objetivo: al guardar quedaba almacenada como si alguien la
+         hubiera tecleado, y desde entonces añadir un alimento ya no movía la
+         cifra. Es lo que hacía que una copia con un alimento de más siguiera
+         diciendo las kcal de la original.
+
+         `objetivo` es el respaldo para servidores viejos que no lo mandan. */
+      var obj = d.objetivo || { calories: d.calories, proteins: det.proteins,
+                                carbs: det.carbs, fats: det.fats, fiber: det.fiber };
+      document.getElementById('f_calories').value = obj.calories || '';
+      document.getElementById('f_proteins').value = obj.proteins || '';
+      document.getElementById('f_carbs').value    = obj.carbs    || '';
+      document.getElementById('f_fats').value     = obj.fats     || '';
+      document.getElementById('f_fiber').value    = obj.fiber    || '';
+      // El modo lo decide el servidor mirando lo escrito, no esta pantalla
+      // mirando lo relleno.
+      setGoalMode(d.goal_mode
+        || ((obj.proteins || obj.carbs || obj.fats) ? 'macros' : (obj.calories ? 'kcal' : 'libre')));
       document.getElementById('f_deficit').value  = det.deficit  || '';
       document.getElementById('f_surplus').value  = det.surplus  || '';
       _renderDietTypeOptions(d.type_id != null ? d.type_id : '');
