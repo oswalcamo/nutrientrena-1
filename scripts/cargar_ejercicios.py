@@ -346,6 +346,47 @@ def _pinta_avisos(avisos):
     return hay
 
 
+# Cloudflare está delante de r2.dev y contesta 403 a lo que no parece un
+# navegador: con `Python-urllib/3.11` fallaban las 130 aunque estuvieran todas.
+# El navegador del cliente sí las va a poder cargar, así que hay que preguntar
+# como pregunta él.
+_COMO_UN_NAVEGADOR = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                  "(KHTML, like Gecko) Chrome/126.0 Safari/537.36",
+    "Accept": "image/avif,image/webp,image/png,image/*,*/*;q=0.8",
+}
+
+
+def _estado_de(url):
+    """El código que devuelve pedir esa imagen, o el motivo si no hubo respuesta.
+
+    Prueba con HEAD, que no descarga el fichero. Si lo rechazan —hay servidores
+    que solo admiten GET— repite pidiendo el primer byte: sirve igual para
+    saber si está y sigue sin traerse la imagen entera 130 veces.
+    """
+    from urllib.request import Request, urlopen
+    from urllib.error import HTTPError, URLError
+
+    def pedir(metodo, cabeceras):
+        with urlopen(Request(url, method=metodo, headers=cabeceras), timeout=20) as r:
+            return r.status
+
+    try:
+        return pedir("HEAD", _COMO_UN_NAVEGADOR)
+    except HTTPError as e:
+        if e.code not in (403, 405, 400):
+            return e.code
+    except URLError as e:
+        return str(e.reason)
+
+    try:
+        return pedir("GET", dict(_COMO_UN_NAVEGADOR, Range="bytes=0-0"))
+    except HTTPError as e:
+        return e.code
+    except URLError as e:
+        return str(e.reason)
+
+
 def _comprobar_imagenes(filas, mapa):
     """Pide cada imagen y dice cuáles no están. Devuelve 1 si falta alguna.
 
@@ -353,9 +394,6 @@ def _comprobar_imagenes(filas, mapa):
     guardó como `.png` para que la ficha del ejercicio salga con un hueco. Eso
     no lo ve nadie hasta que un cliente abre esa ficha en el gimnasio.
     """
-    from urllib.request import Request, urlopen
-    from urllib.error import HTTPError, URLError
-
     pendientes = []
     for fila in filas:
         n = (fila.get("imagen") or "").strip()
@@ -365,24 +403,35 @@ def _comprobar_imagenes(filas, mapa):
     print(f"\nComprobando {len(pendientes)} imágenes…")
     faltan = []
     for i, (ejercicio, archivo, url) in enumerate(pendientes, 1):
-        try:
-            with urlopen(Request(url, method="HEAD"), timeout=15) as r:
-                if r.status >= 400:
-                    faltan.append((ejercicio, archivo, r.status))
-        except HTTPError as e:
-            faltan.append((ejercicio, archivo, e.code))
-        except URLError as e:
-            faltan.append((ejercicio, archivo, str(e.reason)))
+        estado = _estado_de(url)
+        if not (isinstance(estado, int) and estado < 400):
+            faltan.append((ejercicio, archivo, estado))
         if i % 25 == 0:
             print(f"  {i}/{len(pendientes)}…")
 
     if not faltan:
         print(f"\nLas {len(pendientes)} están. La carga puede poner la imagen de todas.")
         return 0
+
     print(f"\nNO ESTÁN {len(faltan)} de {len(pendientes)}:")
-    for ejercicio, archivo, motivo in faltan:
+    for ejercicio, archivo, motivo in faltan[:20]:
         print(f"  · {archivo}  ({ejercicio}) → {motivo}")
-    print("\nEsos ejercicios entrarían con un hueco donde va la foto.")
+    if len(faltan) > 20:
+        print(f"  … y {len(faltan) - 20} más")
+
+    # Fallan TODAS con el mismo código: no es que falten ficheros, es que no se
+    # puede entrar. Decirlo evita salir a buscar 130 imágenes que sí están.
+    motivos = {m for _e, _a, m in faltan}
+    if len(faltan) == len(pendientes) and len(motivos) == 1:
+        unico = motivos.pop()
+        print(f"\nFallan LAS {len(faltan)}, todas con {unico}. Eso no son 130 ficheros")
+        print("que falten: es que el bucket no deja entrar. En Cloudflare → R2 →")
+        print("el bucket → Settings → Public Development URL tiene que estar")
+        print("habilitada (o un dominio propio conectado). Compruébalo abriendo")
+        print("una de esas URLs en una ventana de incógnito: si ahí tampoco se ve,")
+        print("es eso.")
+    else:
+        print("\nEsos ejercicios entrarían con un hueco donde va la foto.")
     return 1
 
 

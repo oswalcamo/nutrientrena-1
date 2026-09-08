@@ -316,3 +316,69 @@ def test_UN_EJERCICIO_QUE_YA_EXISTE_SE_ACTUALIZA(client, seed):
         assert t.exercise_type == "compound" and t.location == "gym"
     finally:
         db.close()
+
+
+# ── Comprobar que las imágenes están de verdad ─────────────────────────────
+#
+# Las 130 dieron 403 la primera vez y no faltaba ninguna: el comprobador
+# preguntaba con `User-Agent: Python-urllib`, y Cloudflare —que está delante de
+# r2.dev— eso lo rechaza. Un fallo del que pregunta parecía un fallo de lo
+# preguntado, y detrás de eso hay alguien buscando 130 imágenes que sí estaban.
+
+import threading                                                  # noqa: E402
+from http.server import BaseHTTPRequestHandler, HTTPServer         # noqa: E402
+
+
+def _servidor(manejador):
+    s = HTTPServer(("127.0.0.1", 0), manejador)
+    threading.Thread(target=s.serve_forever, daemon=True).start()
+    return s, f"http://127.0.0.1:{s.server_port}"
+
+
+def test_UN_HEAD_RECHAZADO_NO_ES_UNA_IMAGEN_QUE_FALTE():
+    """Es lo que pasó de verdad: 403 a las 130 y estaban todas."""
+    class Cerrado(BaseHTTPRequestHandler):
+        def do_HEAD(self):
+            self.send_error(403)
+        def do_GET(self):
+            self.send_response(206); self.send_header("Content-Length", "1")
+            self.end_headers(); self.wfile.write(b"x")
+        def log_message(self, *a): pass
+
+    s, base = _servidor(Cerrado)
+    try:
+        assert ce._estado_de(base + "/gato-camello.png") == 206
+    finally:
+        s.shutdown()
+
+
+def test_una_que_NO_esta_se_sigue_viendo():
+    """El arreglo no puede tragarse el caso que importa."""
+    class Vacio(BaseHTTPRequestHandler):
+        def do_HEAD(self): self.send_error(404)
+        def do_GET(self): self.send_error(404)
+        def log_message(self, *a): pass
+
+    s, base = _servidor(Vacio)
+    try:
+        assert ce._estado_de(base + "/no-existe.png") == 404
+    finally:
+        s.shutdown()
+
+
+def test_se_pregunta_como_pregunta_un_navegador():
+    """Sin esto Cloudflare contesta 403 aunque el fichero esté."""
+    vistos = []
+
+    class Mira(BaseHTTPRequestHandler):
+        def do_HEAD(self):
+            vistos.append(self.headers.get("User-Agent"))
+            self.send_response(200); self.end_headers()
+        def log_message(self, *a): pass
+
+    s, base = _servidor(Mira)
+    try:
+        ce._estado_de(base + "/x.png")
+        assert vistos and "Mozilla" in vistos[0], vistos
+    finally:
+        s.shutdown()
