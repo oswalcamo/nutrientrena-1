@@ -270,6 +270,39 @@
     .ws-rpe.vacio{color:#9CA3AF;}
     .ws-set.done .ws-rpe{background:#ECFDF5;border-color:#A7F3D0;}
 
+    /* ── Descartar el entrenamiento ────────────────────────────────────────
+       Al final de la rutina, después de los ejercicios: quien ha abierto la
+       sesión sin querer no busca arriba una salida, llega al final y espera
+       encontrar ahí qué hacer con lo que acaba de empezar. En rojo apagado y
+       no en rojo sólido —tirar el entreno no es la acción principal de esta
+       pantalla— pero sin esconderlo. */
+    .ws-descartar{
+      width:100%;margin:6px 0 10px;padding:14px;border-radius:12px;
+      border:1px solid #FECACA;background:#FEF2F2;color:#DC2626;
+      font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;
+      display:flex;align-items:center;justify-content:center;gap:8px;transition:.15s;
+    }
+    .ws-descartar:hover{background:#FEE2E2;border-color:#FCA5A5;}
+
+    .desc-back{display:none;position:fixed;inset:0;background:rgba(17,24,39,.55);
+      z-index:1400;align-items:center;justify-content:center;padding:20px;}
+    .desc-back.open{display:flex;}
+    .desc-caja{background:#fff;border-radius:18px;width:100%;max-width:340px;
+      padding:22px 22px 18px;box-shadow:0 24px 64px rgba(0,0,0,.3);}
+    .desc-ico{width:42px;height:42px;border-radius:50%;background:#FEF2F2;color:#DC2626;
+      display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+    .desc-caja h3{font-size:17px;font-weight:800;color:#111827;margin-bottom:6px;}
+    .desc-caja p{font-size:13.5px;color:#6B7280;line-height:1.5;margin-bottom:18px;}
+    .desc-botones{display:flex;gap:10px;}
+    .desc-seguir,.desc-si{
+      flex:1;padding:12px 10px;border-radius:10px;font-family:inherit;
+      font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;
+    }
+    .desc-seguir{border:1px solid #E5E7EB;background:#fff;color:#374151;}
+    .desc-seguir:hover{background:#F9FAFB;}
+    .desc-si{border:none;background:#EF4444;color:#fff;}
+    .desc-si:hover{background:#DC2626;}
+
     /* ── La ficha del ejercicio ────────────────────────────────────────────
        Al tocar la foto solo se abría el vídeo. Todo lo demás que el coach
        había escrito —cómo se hace, qué músculos trabaja, con qué material—
@@ -556,7 +589,32 @@
     <button class="ws-terminar" onclick="finishWorkout()">Terminar</button>
   </div>
   <div class="ws-sub" id="wsSub"></div>
-  <div class="ws-body"><div class="ws-inner" id="wsInner"></div></div>
+  <div class="ws-body">
+    <div class="ws-inner" id="wsInner"></div>
+    <!-- Va FUERA de #wsInner: `renderWorkout` reescribe ese contenedor entero
+         cada vez que se marca una serie, y el botón se iría con él. -->
+    <div class="ws-inner">
+      <button class="ws-descartar" onclick="pedirDescartar()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Descartar entrenamiento
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Descartar no se deshace, así que se pregunta. Con una ventana propia y no
+     con el `confirm` del navegador: es la misma decisión que la del final de
+     la sesión y tiene que verse igual de seria. -->
+<div class="desc-back" id="descBack" onclick="if(event.target===this)cerrarDescartar()">
+  <div class="desc-caja" role="dialog" aria-modal="true" aria-labelledby="descTit">
+    <div class="desc-ico"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+    <h3 id="descTit">¿Seguro que quieres descartar?</h3>
+    <p>Se perderán las series, pesos y notas que hayas registrado en esta sesión.</p>
+    <div class="desc-botones">
+      <button class="desc-seguir" onclick="cerrarDescartar()">Seguir entrenando</button>
+      <button class="desc-si" onclick="descartarEntreno()">Sí, descartar</button>
+    </div>
+  </div>
 </div>
 
 <!-- Vídeo de ejecución. El miniatura de la sesión mide 52px — no cabe un
@@ -1159,11 +1217,36 @@
     document.body.style.overflow = '';
     _ws = null;
   }
-  function exitWorkout(){
-    if (_ws){
-      var anyDone = _ws.exercises.some(function(e){ return e.sets.some(function(s){ return s.done; }); });
-      if (anyDone && !confirm('¿Salir sin terminar? Se perderá el progreso de esta sesión.')) return;
-    }
+  /* Salir por la «X» de arriba y «Descartar entrenamiento» son LA MISMA cosa:
+     las dos cierran la sesión sin guardarla. Tener dos avisos distintos para
+     el mismo desenlace —uno del navegador y otro propio— es pedirle al cliente
+     que aprenda dos veces lo mismo. */
+  function exitWorkout(){ pedirDescartar(); }
+
+  function _haRegistradoAlgo(){
+    if (!_ws) return false;
+    return _ws.exercises.some(function(e){
+      if ((e.note || '').trim()) return true;
+      return e.sets.some(function(s){
+        return s.done || String(s.reps || '').trim() || String(s.kg || '').trim()
+            || String(s.rpe || '').trim();
+      });
+    });
+  }
+
+  function pedirDescartar(){
+    if (!_ws) return;
+    /* Sin nada marcado ni escrito no hay nada que perder, y avisar de que «se
+       perderán las series, pesos y notas» sería mentira además de una puerta
+       de más para quien ha entrado sin querer. */
+    if (!_haRegistradoAlgo()){ _wsClose(); return; }
+    document.getElementById('descBack').classList.add('open');
+  }
+  function cerrarDescartar(){
+    document.getElementById('descBack').classList.remove('open');
+  }
+  function descartarEntreno(){
+    cerrarDescartar();
     _wsClose();
   }
   async function finishWorkout(){
