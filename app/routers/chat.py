@@ -261,28 +261,14 @@ def _get_all_client_user_ids(db: Session) -> list[int]:
 # pregunta —¿con quién puede hablar este usuario?— y la responde una vez.
 
 def _mi_organizacion(user_id: int, db: Session):
-    """La organización de la que este usuario es dueño o miembro, o None."""
-    from app.models.organization import Organization, OrganizationMember
-    from app.models.team_member import TeamMember
+    """La organización de la que este usuario es dueño o miembro, o None.
 
-    detail = _user_detail(db, user_id)
-    if not detail:
-        return None
-    org = db.query(Organization).filter(Organization.owner_id == detail.id).first()
-    if org:
-        return org
-    fila = db.query(TeamMember).filter(
-        TeamMember.user_detail_id == detail.id,
-        TeamMember.organization_id.isnot(None),
-    ).first()
-    if fila:
-        return db.query(Organization).filter(Organization.id == fila.organization_id).first()
-    miembro = db.query(OrganizationMember).filter(
-        OrganizationMember.user_detail_id == detail.id
-    ).first()
-    if miembro:
-        return db.query(Organization).filter(Organization.id == miembro.organization_id).first()
-    return None
+    La busca `app/core/organizaciones.py`: lo mismo hace falta en la nutrición
+    del cliente, y dos versiones de "cuál es tu centro" acaban diciendo cosas
+    distintas.
+    """
+    from app.core.organizaciones import organizacion_de
+    return organizacion_de(db, user_id)
 
 
 def _user_ids_de_detalles(detail_ids, db: Session) -> list[int]:

@@ -313,6 +313,35 @@ def _diet_meals_macros(diet):
 
 
 
+def _dias_cumplidos(db: Session, detail, data: dict) -> dict:
+    """Marca en cada día si el cliente ya lo dio por cumplido.
+
+    Va aquí y no dentro de cada uno de los tres caminos que arman la semana
+    —calendario, menú semanal y dieta suelta— porque los tres devuelven la
+    misma lista de días y uno de ellos se habría quedado sin la marca. Ese es
+    justo el fallo que no se ve: el cliente marca el día, cambia de semana y al
+    volver está desmarcado.
+    """
+    from app.models.nutrition_day import ClientNutritionDay
+
+    dias = data.get("days") or []
+    if not detail or not dias:
+        return data
+    fechas = [d["date"] for d in dias if d.get("date")]
+    if not fechas:
+        return data
+    hechos = {
+        f.day.isoformat() for f in
+        db.query(ClientNutritionDay).filter(
+            ClientNutritionDay.client_user_detail_id == detail.id,
+            ClientNutritionDay.day.in_([date.fromisoformat(f) for f in fechas]),
+        ).all()
+    }
+    for d in dias:
+        d["completed"] = d.get("date") in hechos
+    return data
+
+
 def _semana_del_calendario(db, detail, week_start, today_idx):
     """La semana del cliente cuando la nutrición se programa día a día.
 
@@ -400,8 +429,8 @@ def client_nutrition(db: Session = Depends(get_db), current_user: User = Depends
     #    estaría programando en el calendario y su cliente comiendo otra cosa,
     #    sin que ninguno de los dos lo supiera.
     if (detail.nutrition_mode or "semanal") == "calendario":
-        return send_response(
-            _semana_del_calendario(db, detail, week_start, today_idx), "OK")
+        return send_response(_dias_cumplidos(
+            db, detail, _semana_del_calendario(db, detail, week_start, today_idx)), "OK")
 
     # 1) Menú semanal asignado (ClientMenu → WeeklyMenu), si existe: cada día
     #    puede tener su propia dieta.
@@ -427,8 +456,9 @@ def client_nutrition(db: Session = Depends(get_db), current_user: User = Depends
                 "is_today": i == today_idx, "has_diet": diet is not None,
                 "kcal": kcal, "protein": prot, "carbs": carb, "fats": fat, "meals": meals,
             })
-        return send_response({"menu": {"name": menu.name}, "week_start": week_start.isoformat(),
-                              "plan_semanal": True, "days": days}, "OK")
+        return send_response(_dias_cumplidos(db, detail, {
+            "menu": {"name": menu.name}, "week_start": week_start.isoformat(),
+            "plan_semanal": True, "days": days}), "OK")
 
     # 2) Sin menú semanal: usar las dietas que el coach asignó directamente al
     #    cliente (Diet.user_id == cliente). Es el flujo real de client-profile.
@@ -456,7 +486,7 @@ def client_nutrition(db: Session = Depends(get_db), current_user: User = Depends
             "is_today": i == today_idx, "has_diet": True,
             "kcal": kcal, "protein": prot, "carbs": carb, "fats": fat, "meals": meals,
         })
-    return send_response({
+    return send_response(_dias_cumplidos(db, detail, {
         "menu": {"name": diet.title},
         "week_start": week_start.isoformat(),
         "plan_semanal": False,
@@ -464,6 +494,141 @@ def client_nutrition(db: Session = Depends(get_db), current_user: User = Depends
         # material que el cliente no puede llegar a ver.
         "dietas_asignadas": len(dietas),
         "days": days,
+    }), "OK")
+
+
+class DiaCumplido(BaseModel):
+    completado: bool = True
+
+
+@router.post("/nutrition/day/{fecha}/completado",
+             summary="Marcar (o desmarcar) un día de nutrición como cumplido")
+def marcar_dia_nutricion(
+    fecha: str,
+    body: DiaCumplido,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role_ids(CLIENT)),
+):
+    """El botón del final de la pantalla de nutrición.
+
+    Lo marca el CLIENTE y solo para sí mismo: no hay id de cliente en la ruta a
+    propósito, porque el único que puede decir que ha comido lo del martes es
+    quien comió.
+
+    Se puede desmarcar. Un botón que solo va en un sentido convierte un toque
+    sin querer en un dato falso que ya no hay forma de corregir.
+    """
+    from app.models.nutrition_day import ClientNutritionDay
+
+    detail = _client_detail(db, current_user)
+    if not detail:
+        return send_error("Sin cliente", code=404)
+
+    try:
+        dia = date.fromisoformat(fecha)
+    except ValueError:
+        return send_error("Fecha no válida. Se espera AAAA-MM-DD.", code=422)
+
+    # Marcar mañana no es marcar nada: todavía no ha pasado.
+    if dia > date.today():
+        return send_error("Ese día todavía no ha llegado", code=422)
+
+    fila = db.query(ClientNutritionDay).filter(
+        ClientNutritionDay.client_user_detail_id == detail.id,
+        ClientNutritionDay.day == dia,
+    ).first()
+
+    if body.completado and not fila:
+        db.add(ClientNutritionDay(client_user_detail_id=detail.id, day=dia))
+        db.commit()
+    elif not body.completado and fila:
+        db.delete(fila)
+        db.commit()
+
+    return send_response({"date": dia.isoformat(), "completed": bool(body.completado)}, "OK")
+
+
+@router.get("/recipes", summary="Recetas que el cliente puede ver",
+            description="El catálogo de recetas de la plataforma y el de su centro, "
+                        "con búsqueda por nombre y filtro por tipo de comida.")
+def client_recipes(
+    search: Optional[str] = Query(None),
+    meal_type: Optional[str] = Query(None),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(24, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role_ids(CLIENT)),
+):
+    """La pestaña "Recetas" de la pantalla de nutrición.
+
+    Hasta ahora TODOS los endpoints de recetas exigían admin, coach o editor:
+    el cliente no podía leer ni una, aunque el catálogo se hizo para él. Este
+    es su puerta, y es de solo lectura.
+
+    Qué ve: las recetas de la plataforma (sin organización) y las de SU centro.
+    Las de otro centro no, por el mismo motivo que no ve a sus clientes.
+    """
+    from sqlalchemy import or_
+    from sqlalchemy.orm import selectinload
+    from app.core.organizaciones import organizacion_de_detalle
+    from app.models.nutrition.recipe import Recipe, RecipeDetail
+
+    detail = _client_detail(db, current_user)
+    coach = _coach_of(db, detail.id) if detail else None
+    org = organizacion_de_detalle(db, coach) if coach else None
+
+    q = db.query(Recipe).options(
+        selectinload(Recipe.details).selectinload(RecipeDetail.aliment),
+    ).filter(Recipe.state == 1)
+
+    if org:
+        q = q.filter(or_(Recipe.organization_id.is_(None),
+                         Recipe.organization_id == org.id))
+    else:
+        # Sin centro, solo el catálogo de la plataforma. Enseñarle todas las
+        # recetas de todos los centros sería abrir el material de otros.
+        q = q.filter(Recipe.organization_id.is_(None))
+
+    if search:
+        q = q.filter(Recipe.name.ilike(f"%{search.strip()}%"))
+    if meal_type:
+        q = q.filter(Recipe.meal_type.ilike(f"%{meal_type.strip()}%"))
+
+    total = q.count()
+    filas = q.order_by(Recipe.name).offset((page - 1) * per_page).limit(per_page).all()
+
+    # Solo lo que la tarjeta enseña. La receta entera —ingredientes, pasos,
+    # notas del nutricionista— es otra pantalla y otra petición: mandarla aquí
+    # serían veinticuatro recetas completas para pintar veinticuatro fotos.
+    items = [{
+        "id": r.id,
+        "name": r.name,
+        "image": r.image,
+        "kcal": round(r.calories) if r.calories is not None else None,
+        "prep_time": r.prep_time,
+        "meal_type": r.meal_type,
+        "difficulty": r.difficulty,
+        "servings": r.servings,
+    } for r in filas]
+
+    return send_response({
+        "items": items,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "last_page": max(1, (total + per_page - 1) // per_page),
+        # Para las pastillas de arriba: los tipos que de verdad hay, no una
+        # lista fija con categorías vacías que no llevan a ninguna parte.
+        "meal_types": sorted({
+            (t or "").strip() for (t,) in
+            db.query(Recipe.meal_type).filter(
+                Recipe.state == 1,
+                Recipe.meal_type.isnot(None),
+                Recipe.organization_id.is_(None) if not org else or_(
+                    Recipe.organization_id.is_(None),
+                    Recipe.organization_id == org.id),
+            ).distinct().all() if (t or "").strip()
+        }),
     }, "OK")
 
 

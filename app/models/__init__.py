@@ -27,6 +27,7 @@ from app.models.app_setting import AppSetting
 from app.models.program import Program, ProgramPhase, ProgramClient
 from app.models.weekly_menu import WeeklyMenu, WeeklyMenuDay
 from app.models.client_menu import ClientMenu
+from app.models.nutrition_day import ClientNutritionDay
 from app.models.client_exercise import ClientExercise
 from app.models.calendar_task import CalendarTask
 # Modelos que faltaban en el registro: sin ellos Base.metadata queda incompleta
