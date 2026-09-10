@@ -231,3 +231,79 @@ def records_de(ejercicios, marcas_previas):
         if previa is None or marca > previa:
             hechos.append({"name": getattr(ex, "name", None), "rm1": marca, "previo": previa})
     return hechos
+
+
+# ── Un ejercicio, sesión a sesión ──────────────────────────────────────────
+#
+# Esto lo calculaba la vista de Fuerza del coach dentro de su propio bucle. El
+# cliente necesita exactamente lo mismo para su ficha del ejercicio —récords y
+# evolución de carga—, y escribirlo dos veces es cómo acaban dos pantallas
+# diciendo cifras distintas del mismo levantamiento. Vive aquí y lo usan los
+# dos.
+
+def fila_de_sesion(ex, sesion, descanso_s=None):
+    """Qué dice UNA sesión de UN ejercicio, o None si no hay nada que decir.
+
+    Un ejercicio por tiempo —una plancha— no tiene peso top ni 1RM: enseñar
+    "0 kg" sería decir que no levantó nada, cuando lo que pasa es que ahí no
+    se levanta.
+    """
+    marcadas = [st for st in (getattr(ex, "sets", None) or []) if st.done]
+    if not marcadas:
+        return None
+
+    por_tiempo = es_por_tiempo(ex.sets)
+    if por_tiempo:
+        mejor = max((segundos(st.reps) or 0) for st in marcadas)
+        fila = {"peso_top": None, "reps_top": None, "rm1": None,
+                "volumen": None, "segundos": mejor, "tiempo": mmss(mejor)}
+    else:
+        # El peso top es el más pesado que MOVIÓ; las repeticiones que se
+        # enseñan son las de esa serie, no las de la más larga: son las dos
+        # cifras del mismo levantamiento.
+        con_peso = [st for st in marcadas if st.weight is not None]
+        if not con_peso:
+            return None
+        top = max(con_peso, key=lambda st: float(st.weight))
+        reps_top = repeticiones(top.reps)
+        vol = sum(float(st.weight) * (repeticiones(st.reps) or 0) for st in con_peso)
+        fila = {
+            "peso_top": round(float(top.weight), 1),
+            "reps_top": int(reps_top) if reps_top else None,
+            "rm1": rm_estimado(top.weight, reps_top),
+            "volumen": round(vol, 1),
+            "segundos": None, "tiempo": None,
+        }
+
+    rpes = [st.rpe for st in marcadas if st.rpe is not None]
+    fila.update({
+        "fecha": sesion.session_date.isoformat() if sesion.session_date else None,
+        "series": len(marcadas),
+        "rir": rir_de_rpe(sum(rpes) / len(rpes)) if rpes else None,
+        "descanso_s": descanso_s,
+        "detalle": [{
+            "serie": st.set_number,
+            "reps": st.reps,
+            "peso": st.weight,
+            "rpe": st.rpe,
+        } for st in sorted(marcadas, key=lambda x: x.set_number or 0)],
+    })
+    return fila
+
+
+def records_de_ejercicio(filas):
+    """Los máximos históricos de un ejercicio, de sus filas por sesión.
+
+    Vacío es vacío: un ejercicio que solo se ha hecho por tiempo no tiene
+    récord de peso, y un 0 ahí se leería como un dato.
+    """
+    pesos = [f["peso_top"] for f in filas if f.get("peso_top") is not None]
+    rms = [f["rm1"] for f in filas if f.get("rm1") is not None]
+    vols = [f["volumen"] for f in filas if f.get("volumen") is not None]
+    tiempos = [f["segundos"] for f in filas if f.get("segundos") is not None]
+    return {
+        "mayor_peso": max(pesos) if pesos else None,
+        "mejor_rm1": max(rms) if rms else None,
+        "mejor_volumen": max(vols) if vols else None,
+        "mejor_tiempo_s": max(tiempos) if tiempos else None,
+    }

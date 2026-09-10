@@ -303,7 +303,8 @@ def fuerza(
     _=Depends(require_role_ids(SUPERADMIN, ADMIN, COACH)),
 ):
     from app.core.entrenos import (
-        es_por_tiempo, mmss, repeticiones, rir_de_rpe, rm_estimado, segundos,
+        es_por_tiempo, fila_de_sesion, mmss, repeticiones, rir_de_rpe,
+        rm_estimado, segundos,
     )
     from app.models.routine import RoutineDayDetail
     from app.models.session_log import WorkoutSessionExercise
@@ -335,48 +336,20 @@ def fuerza(
             if not marcadas:
                 continue
 
+            # El cálculo vive en core/entrenos: el cliente lo necesita igual
+            # para su ficha del ejercicio, y escribirlo dos veces es cómo
+            # acaban dos pantallas diciendo cifras distintas del mismo
+            # levantamiento.
+            fila = fila_de_sesion(ex, s, descansos.get(ex.training_id))
+            if fila is None:
+                continue
+
             clave = nombre.lower()
             e = por_ejercicio.setdefault(clave, {
                 "nombre": nombre,
                 "grupo": ex.muscle_group_name,
                 "tipo": "tiempo" if es_por_tiempo(ex.sets) else "peso_reps",
                 "sesiones": [],
-            })
-
-            if e["tipo"] == "tiempo":
-                mejor = max((segundos(st.reps) or 0) for st in marcadas)
-                fila = {"peso_top": None, "reps_top": None, "rm1": None,
-                        "volumen": None, "segundos": mejor, "tiempo": mmss(mejor)}
-            else:
-                # El peso top es el más pesado que MOVIÓ; las repeticiones que
-                # se enseñan son las de esa serie, no las de la más larga: son
-                # las dos cifras del mismo levantamiento.
-                con_peso = [st for st in marcadas if st.weight is not None]
-                if not con_peso:
-                    continue
-                top = max(con_peso, key=lambda st: float(st.weight))
-                reps_top = repeticiones(top.reps)
-                vol = sum(float(st.weight) * (repeticiones(st.reps) or 0) for st in con_peso)
-                fila = {
-                    "peso_top": round(float(top.weight), 1),
-                    "reps_top": int(reps_top) if reps_top else None,
-                    "rm1": rm_estimado(top.weight, reps_top),
-                    "volumen": round(vol, 1),
-                    "segundos": None, "tiempo": None,
-                }
-
-            rpes = [st.rpe for st in marcadas if st.rpe is not None]
-            fila.update({
-                "fecha": s.session_date.isoformat() if s.session_date else None,
-                "series": len(marcadas),
-                "rir": rir_de_rpe(sum(rpes) / len(rpes)) if rpes else None,
-                "descanso_s": descansos.get(ex.training_id),
-                "detalle": [{
-                    "serie": st.set_number,
-                    "reps": st.reps,
-                    "peso": st.weight,
-                    "rpe": st.rpe,
-                } for st in sorted(marcadas, key=lambda x: x.set_number or 0)],
             })
             e["sesiones"].append(fila)
 

@@ -1022,6 +1022,43 @@ def client_workout_summary(
     }, "OK")
 
 
+def _lo_que_ha_hecho(db: Session, client_detail_id: str, training_id: int):
+    """Las sesiones de ESE cliente con ESE ejercicio, de la más vieja a la más
+    nueva, con el peso top, el 1RM, el volumen y el detalle de cada una.
+
+    Se filtra por `training_id` y no por nombre: el cliente pregunta por el
+    ejercicio que tiene delante, no por todos los que se llamen igual.
+    """
+    from app.core.entrenos import fila_de_sesion
+    from app.models.routine import RoutineDayDetail
+    from app.models.session_log import WorkoutSessionExercise
+
+    # El descanso PRESCRITO, el que su coach puso en la rutina. No es lo que
+    # descansó de verdad —eso no se mide— y la pantalla lo dice.
+    descanso = (db.query(RoutineDayDetail.break_time)
+                .filter(RoutineDayDetail.training_id == training_id,
+                        RoutineDayDetail.break_time.isnot(None))
+                .limit(1).scalar())
+
+    filas = []
+    ejercicios = (db.query(WorkoutSessionExercise)
+                  .join(WorkoutSession,
+                        WorkoutSessionExercise.session_id == WorkoutSession.id)
+                  .filter(WorkoutSession.client_user_detail_id == client_detail_id,
+                          WorkoutSessionExercise.training_id == training_id)
+                  .order_by(WorkoutSession.session_date.asc(),
+                            WorkoutSession.id.asc())
+                  .all())
+    for ex in ejercicios:
+        fila = fila_de_sesion(ex, ex.session, descanso)
+        if fila is None:
+            continue
+        # De qué día de la rutina fue, que es como el cliente lo reconoce.
+        fila["sesion"] = ex.session.day_name
+        filas.append(fila)
+    return filas
+
+
 NIVELES = {1: "Principiante", 2: "Intermedio", 3: "Avanzado"}
 TIPOS = {"compound": "Compuesto", "isolation": "Aislamiento",
          "cardio": "Cardio", "mobility": "Movilidad"}
@@ -1040,6 +1077,7 @@ def client_exercise(
     entero no es suyo: hay ejercicios privados de otras organizaciones, y
     dejarle pedir cualquier id sería enseñárselos con solo acertar un número.
     """
+    from app.core.entrenos import records_de_ejercicio
     from app.models.muscle_group import MuscleGroup
     from app.models.routine import RoutineDayDetail
     from app.models.training import Training
@@ -1071,6 +1109,19 @@ def client_exercise(
     if not niveles and t.difficulty:
         niveles = [t.difficulty]
 
+    # El historial cuelga del `user_detail`, no del usuario: es donde se
+    # guardan las sesiones. Sin cliente no hay nada que contar, pero la ficha
+    # del ejercicio se sigue pudiendo leer.
+    detalle = _client_detail(db, current_user)
+    filas = _lo_que_ha_hecho(db, detalle.id, training_id) if detalle else []
+    records = records_de_ejercicio(filas)
+    # La evolución de carga: el peso más alto de cada sesión, de la más vieja a
+    # la más nueva. Una sesión por tiempo no aporta punto: la línea es de kilos.
+    evolucion = [{"fecha": f["fecha"], "peso": f["peso_top"]}
+                 for f in filas if f["peso_top"] is not None]
+    # Y el historial, de la más reciente primero: es lo que se quiere ver.
+    historial = list(reversed(filas))
+
     return send_response({
         "id": t.id,
         "name": t.name,
@@ -1089,6 +1140,14 @@ def client_exercise(
         "rec_series": t.rec_series,
         "rec_reps": t.rec_reps,
         "rec_rest": t.rec_rest,
+        # Lo que el cliente ha hecho con este ejercicio: sus récords, cómo ha
+        # ido subiendo la carga y las sesiones anteriores con sus series. Es la
+        # MISMA cuenta que ve su coach en la pantalla de Fuerza —vive en
+        # core/entrenos— para que no lean cifras distintas del mismo
+        # levantamiento.
+        "records": records,
+        "evolucion": evolucion,
+        "historial": historial,
     }, "OK")
 
 
