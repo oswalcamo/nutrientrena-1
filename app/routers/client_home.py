@@ -160,6 +160,22 @@ def client_home(
         else:
             routine = {"id": r.id, "name": None, "muscles": [], "focus": None, "duration_min": None, "is_rest": True}
 
+    # ── El plan de entrenamiento, no el día ──
+    # La tarjeta de arriba dice qué toca HOY; en un día de descanso eso deja la
+    # pantalla sin ninguna referencia a lo que el cliente está siguiendo. Esto
+    # es el plan entero: cómo se llama, a qué apunta y cuántos días tiene.
+    plan = None
+    if r:
+        # `days` lo escribe el coach al crear la rutina y puede estar vacío;
+        # entonces se cuentan los días que de verdad tiene montados, que es el
+        # mismo número visto desde el otro lado.
+        plan = {
+            "id": r.id,
+            "name": r.name or None,
+            "objective": r.objective or r.training or None,
+            "days_per_week": r.days or (len(r.days_list or []) or None),
+        }
+
     # ── Menú/dieta del día que se está mirando ──
     menu = None
     if detail:
@@ -196,6 +212,7 @@ def client_home(
         "week": {"range": week_range, "days": week, "offset": week_offset},
         "streak": streak,
         "routine": routine,
+        "plan": plan,
         "menu": menu,
         "checkin": checkin,
         "notifications_unread": 0,  # [pendiente] modelo de notificaciones

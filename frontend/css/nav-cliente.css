@@ -1,0 +1,130 @@
+/* La navegación del cliente en el móvil: una barra abajo, no un cajón lateral.
+
+   El cliente usa esto con el teléfono en la mano, entre serie y serie. Un menú
+   que hay que abrir desde una hamburguesa en la esquina superior izquierda
+   —donde el pulgar no llega— esconde las cinco pantallas que más usa detrás de
+   dos gestos. Abajo están siempre a la vista y a un toque.
+
+   En escritorio no cambia nada: manda la barra lateral de siempre. Las dos no
+   se enseñan a la vez nunca.
+
+   El markup lo pone js/nav-cliente.js. Aquí solo está cómo se ve, para que las
+   diez páginas del cliente compartan una sola definición en vez de diez copias
+   que se van separando. */
+
+:root {
+  --nav-abajo-alto: 58px;
+}
+
+.nav-abajo {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 190;
+  background: #fff;
+  border-top: 1px solid #EBEDF0;
+  /* La barra de gestos del iPhone se come el borde de abajo: sin esto, el
+     último milímetro de los iconos queda debajo de ella. */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.nav-abajo-fila {
+  display: flex;
+  align-items: stretch;
+  height: var(--nav-abajo-alto);
+}
+
+.nav-abajo a {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6px 2px 7px;
+  color: #9095A1;
+  text-decoration: none;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: .1px;
+  position: relative;
+  /* El destello gris de Android al tocar reparte la atención sin aportar nada:
+     el cambio de pantalla ya es la respuesta. */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-abajo .nav-txt {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nav-abajo a svg {
+  flex-shrink: 0;
+}
+
+.nav-abajo a.sel {
+  color: var(--indigo, #4F46E5);
+}
+
+/* La rayita bajo la pestaña abierta. Va debajo del texto y no encima del
+   icono: arriba se confunde con el borde de la barra. */
+.nav-abajo a.sel::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 18px;
+  height: 2.5px;
+  border-radius: 2px;
+  background: var(--indigo, #4F46E5);
+}
+
+/* El globito de mensajes sin leer, sobre el icono de Chat. */
+.nav-abajo .nav-punto {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  margin-left: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 8px;
+  background: #DC2626;
+  color: #fff;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav-abajo {
+    display: block;
+  }
+
+  /* Con la barra abajo, el cajón lateral sobra: dos menús para lo mismo, uno
+     de ellos escondido. Se va entero, con su hamburguesa y su fondo oscuro. */
+  body.con-nav-abajo .sidebar,
+  body.con-nav-abajo .sidebar-overlay,
+  body.con-nav-abajo .menu-btn {
+    display: none !important;
+  }
+
+  /* Sitio para que el último elemento de la página no quede debajo de la
+     barra. Se lo damos a quien de verdad hace el scroll. */
+  body.con-nav-abajo .content,
+  body.con-nav-abajo .main > .content {
+    padding-bottom: calc(var(--nav-abajo-alto) + env(safe-area-inset-bottom, 0px) + 12px);
+  }
+
+  /* Las pantallas con una barra de escribir fija abajo —el chat— la suben por
+     encima de la navegación en vez de quedar tapadas por ella. */
+  body.con-nav-abajo .composer {
+    margin-bottom: calc(var(--nav-abajo-alto) + env(safe-area-inset-bottom, 0px));
+  }
+}
