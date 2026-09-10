@@ -1,0 +1,248 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   El aspecto de Alzum, en un solo sitio.
+
+   Cada una de las 53 pantallas llevaba su propia copia de los colores, los
+   radios y las sombras, y ya habían divergido: el fondo era `#F8FAFC` en
+   treinta y `#F0F2F5` en doce, y las tarjetas 16px de radio en unas y 12 en
+   otras. Nadie decidió eso; se fue separando solo, que es lo que pasa cuando
+   la misma decisión está escrita cincuenta veces.
+
+   A partir de aquí se escribe UNA vez. Cambiar el aspecto de la aplicación es
+   cambiar este fichero, no cincuenta y tres.
+
+   CÓMO SE USA en una página:
+
+     1. `<link rel="stylesheet" href="css/alzum.css">` en el `<head>`, ANTES
+        de su `<style>` propio —lo que la página declare después manda, que es
+        lo que permite ir migrando pantalla a pantalla sin romper las demás—.
+     2. Borrar de esa página su bloque `:root` y sus reglas de `.sidebar`.
+
+   Los tokens están escritos como variables y no como valores sueltos para que
+   un segundo tema —el modo oscuro que pide el prototipo— sea redefinir esta
+   lista y nada más. No está hecho, pero no habrá que volver a tocar 53 sitios.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Color ──────────────────────────────────────────────────────────────
+     El índigo es el color de marca y el único que llama a hacer algo. Todo lo
+     demás son grises: si tres cosas de la pantalla compiten en color, ninguna
+     destaca. */
+  --indigo: #4f46e5;
+  --indigo-dark: #4338ca;
+  --indigo-light: #6366f1;
+  --indigo-pale: #eef2ff;
+
+  /* Los tres que avisan. Se usan para estados, nunca para decorar. */
+  --verde: #059669;
+  --verde-pale: #ecfdf5;
+  --ambar: #f59e0b;
+  --ambar-pale: #fffbeb;
+  --rojo: #dc2626;
+  --rojo-pale: #fef2f2;
+
+  /* Grises, de más oscuro a más claro. `--texto` es el negro de leer; los
+     otros dos bajan de peso sin bajar de legibilidad. */
+  --texto: #111827;
+  --texto-medio: #374151;
+  --texto-suave: #6b7280;
+  --texto-tenue: #9ca3af;
+  --linea: #e9ebef;
+  --linea-suave: #f1f2f5;
+  --fondo: #f8fafc;
+  --superficie: #ffffff;
+  --superficie-hover: #f9fafb;
+
+  /* ── Formas ───────────────────────────────────────────────────────────── */
+  --radio-s: 8px;
+  --radio-m: 12px;
+  --radio-l: 16px;
+  --radio-pastilla: 999px;
+
+  /* Dos sombras y ninguna más. Una para lo que descansa sobre el fondo y otra
+     para lo que flota por encima de la pantalla. */
+  --sombra: 0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 16px rgba(16, 24, 40, 0.05);
+  --sombra-flotante: 0 24px 64px rgba(0, 0, 0, 0.3);
+
+  /* ── Medidas ──────────────────────────────────────────────────────────── */
+  --sidebar-w: 240px;
+  --col-ancho: 1240px; /* el contenido va en una columna de este ancho */
+
+  /* ── Tipografía ───────────────────────────────────────────────────────── */
+  --fuente: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+
+  /* Nombres que se usaban antes y siguen vivos en las páginas sin migrar.
+     Se quedan hasta que no queden usos; borrarlos ahora dejaría media
+     aplicación sin fondo. */
+  --gray-bg: var(--fondo);
+}
+
+body {
+  font-family: var(--fuente);
+  background: var(--fondo);
+  color: var(--texto);
+}
+
+/* ═══ La barra lateral ══════════════════════════════════════════════════════
+   Está en 53 pantallas: es lo primero que se ve al entrar y lo único que se
+   ve en todas. Por eso empieza aquí la migración.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--superficie);
+  border-right: 1px solid var(--linea);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.sidebar-logo {
+  padding: 22px 18px 18px;
+  border-bottom: 1px solid var(--linea-suave);
+}
+.sidebar-logo span {
+  font-size: 20px;
+  font-weight: 900;
+  color: var(--texto);
+  letter-spacing: 1px;
+  font-style: italic;
+  text-transform: uppercase;
+}
+.sidebar-logo span em {
+  color: var(--indigo);
+  font-style: inherit;
+}
+.sidebar-logo small {
+  display: block;
+  color: var(--texto-suave);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 10px 12px;
+}
+
+/* Los epígrafes PRINCIPAL / CONTENIDO / NEGOCIO no están en el diseño: parten
+   una lista de doce enlaces en cinco trozos y añaden cinco líneas de texto que
+   nadie lee. Se ocultan aquí para que las 53 pantallas se vean iguales desde
+   el primer día; el marcado se quita en el paso siguiente, cuando el menú
+   pase a generarse desde un módulo en vez de estar copiado en cada página. */
+.nav-section {
+  display: none;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  margin-bottom: 2px;
+  border-radius: var(--radio-s);
+  color: var(--texto-medio);
+  font-size: 14px;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.13s,
+    color 0.13s;
+}
+.nav-item:hover {
+  background: var(--superficie-hover);
+  color: var(--indigo);
+}
+
+/* El activo, en índigo sólido y no en un tinte con una rayita al lado: en una
+   lista de doce enlaces el tinte claro no se distingue del hover, y hay que
+   buscar dónde estás. */
+.nav-item.active {
+  background: var(--indigo);
+  color: #fff;
+  font-weight: 600;
+}
+.nav-item.active:hover {
+  background: var(--indigo-dark);
+  color: #fff;
+}
+
+.nav-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.nav-item:hover svg {
+  opacity: 1;
+}
+.nav-item.active svg {
+  opacity: 1;
+  color: #fff;
+}
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--rojo);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: var(--radio-pastilla);
+  min-width: 18px;
+  text-align: center;
+}
+/* Sobre el índigo sólido, un rojo saturado vibra. Se invierte: pastilla blanca
+   con el número en índigo, que se lee igual y no pelea con el fondo. */
+.nav-item.active .nav-badge {
+  background: #fff;
+  color: var(--indigo);
+}
+
+.sidebar-user {
+  padding: 12px 14px;
+  border-top: 1px solid var(--linea-suave);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--indigo);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+.user-info {
+  flex: 1;
+  min-width: 0;
+}
+.user-name {
+  color: var(--texto);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-role {
+  color: var(--texto-suave);
+  font-size: 11px;
+}
+.btn-logout {
+  background: none;
+  border: none;
+  color: var(--texto-tenue);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radio-s);
+  transition: color 0.15s;
+}
+.btn-logout:hover {
+  color: var(--rojo);
+}

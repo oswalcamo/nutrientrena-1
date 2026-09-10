@@ -9,71 +9,19 @@
   <title>ALZUM.io — Dashboard</title>
   <!-- El origen de la API: el mismo que sirve esta página. -->
   <script src="js/api-base.js"></script>
+  <!-- El aspecto de la aplicación vive en un solo sitio. Va antes del <style>
+       de abajo a propósito: lo que esta página declare después manda, que es
+       lo que permite migrar pantalla a pantalla sin romper las demás. -->
+  <link rel="stylesheet" href="css/alzum.css">
   <script>if((localStorage.getItem("role_id")||"")==="6"){location.replace("client-home.html");}</script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box;}
-    :root{
-      --indigo:#4F46E5;
-      --indigo-dark:#4338CA;
-      --indigo-light:#6366F1;
-      --indigo-pale:#EEF2FF;
-      --gray-bg:#F8FAFC;
-      --sidebar-w:240px;
-      /* El contenido va en una columna de este ancho, centrada. */
-      --col-ancho:1240px;
-      --sombra:0 1px 2px rgba(16,24,40,.05),0 6px 16px rgba(16,24,40,.05);
-    }
-    body{font-family:'Space Grotesk','Segoe UI',system-ui,sans-serif;background:var(--gray-bg);display:flex;height:100vh;overflow:hidden;}
+    /* Los colores, radios y sombras salen de css/alzum.css. */
+    body{display:flex;height:100vh;overflow:hidden;}
 
-    /* ── Sidebar ── */
-    .sidebar{
-      width:var(--sidebar-w);min-width:var(--sidebar-w);
-      background:#fff;border-right:1px solid #E5E7EB;
-      display:flex;flex-direction:column;
-      height:100vh;overflow-y:auto;
-    }
-    .sidebar-logo{
-      padding:24px 20px 20px;
-      border-bottom:1px solid #EBEBEB;
-    }
-    .sidebar-logo span{
-      font-size:20px;font-weight:900;color:#111827;
-      letter-spacing:1px;font-style:italic;text-transform:uppercase;
-    }
-    .sidebar-logo span em{color:var(--indigo);font-style:inherit;}
-    .sidebar-logo small{display:block;color:#6B7280;font-size:11px;margin-top:2px;}
+    /* La barra lateral está en css/alzum.css: es la misma en 53 pantallas.
 
-    .sidebar-nav{flex:1;padding:12px 0;}
-    .nav-section{padding:8px 20px 4px;font-size:10px;color:#6B7280;text-transform:uppercase;letter-spacing:1px;}
-    .nav-item{
-      display:flex;align-items:center;gap:10px;
-      padding:10px 20px;color:#374151;
-      cursor:pointer;font-size:14px;transition:all .15s;
-      border-left:3px solid transparent;text-decoration:none;
-    }
-    .nav-item:hover{background:#F8FAFC;color:var(--indigo);}
-    .nav-item.active{background:#EEF2FF;color:var(--indigo);border-left-color:var(--indigo);font-weight:600;}
-    .nav-item svg{flex-shrink:0;opacity:.7;}
-    .nav-item.active svg,.nav-item:hover svg{opacity:1;}
-    .nav-badge{margin-left:auto;background:#EF4444;color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:20px;min-width:18px;text-align:center;}
-
-    .sidebar-user{
-      padding:14px 20px;border-top:1px solid #F3F4F6;
-      display:flex;align-items:center;gap:10px;
-    }
-    .avatar{
-      width:34px;height:34px;border-radius:50%;
-      background:var(--indigo);display:flex;align-items:center;justify-content:center;
-      font-weight:700;color:#fff;font-size:13px;flex-shrink:0;
-    }
-    .user-info{flex:1;min-width:0;}
-    .user-name{color:#111827;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .user-role{color:#6B7280;font-size:11px;}
-    .btn-logout{
-      background:none;border:none;color:#9CA3AF;
-      cursor:pointer;padding:4px;border-radius:4px;transition:color .15s;
-    }
-    .btn-logout:hover{color:#EF4444;}
+       Aquí solo quedaría lo que fuera exclusivo de ésta, y no hay nada. */
 
     /* ── Main ── */
     .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
