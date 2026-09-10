@@ -1,681 +1,2014 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
-  <title>ALZUM.io — Dashboard</title>
-  <!-- El origen de la API: el mismo que sirve esta página. -->
-  <script src="js/api-base.js"></script>
-  <!-- El aspecto de la aplicación vive en un solo sitio. Va antes del <style>
-       de abajo a propósito: lo que esta página declare después manda, que es
-       lo que permite migrar pantalla a pantalla sin romper las demás. -->
-  <link rel="stylesheet" href="css/alzum.css">
-  <script>if((localStorage.getItem("role_id")||"")==="6"){location.replace("client-home.html");}</script>
-  <style>
-    *{margin:0;padding:0;box-sizing:border-box;}
-    /* Los colores, radios y sombras salen de css/alzum.css. */
-    body{display:flex;height:100vh;overflow:hidden;}
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+      rel="stylesheet"
+    />
+    <title>ALZUM.io — Dashboard</title>
+    <!-- El origen de la API: el mismo que sirve esta página. -->
+    <script src="js/api-base.js"></script>
+    <script>
+      if ((localStorage.getItem("role_id") || "") === "6") {
+        location.replace("client-home.html");
+      }
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      :root {
+        --indigo: #4f46e5;
+        --indigo-dark: #4338ca;
+        --indigo-light: #6366f1;
+        --indigo-pale: #eef2ff;
+        --gray-bg: #f8fafc;
+        --sidebar-w: 240px;
+        /* El contenido va en una columna de este ancho, centrada. */
+        --col-ancho: 1240px;
+        --sombra:
+          0 1px 2px rgba(16, 24, 40, 0.05), 0 6px 16px rgba(16, 24, 40, 0.05);
+      }
+      body {
+        font-family: "Space Grotesk", "Segoe UI", system-ui, sans-serif;
+        background: var(--gray-bg);
+        display: flex;
+        height: 100vh;
+        overflow: hidden;
+      }
 
-    /* La barra lateral está en css/alzum.css: es la misma en 53 pantallas.
+      /* ── Sidebar ── */
+      .sidebar {
+        width: var(--sidebar-w);
+        min-width: var(--sidebar-w);
+        background: #fff;
+        border-right: 1px solid #e5e7eb;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      .sidebar-logo {
+        padding: 24px 20px 20px;
+        border-bottom: 1px solid #ebebeb;
+      }
+      .sidebar-logo span {
+        font-size: 20px;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: 1px;
+        font-style: italic;
+        text-transform: uppercase;
+      }
+      .sidebar-logo span em {
+        color: var(--indigo);
+        font-style: inherit;
+      }
+      .sidebar-logo small {
+        display: block;
+        color: #6b7280;
+        font-size: 11px;
+        margin-top: 2px;
+      }
 
-       Aquí solo quedaría lo que fuera exclusivo de ésta, y no hay nada. */
+      .sidebar-nav {
+        flex: 1;
+        padding: 12px 0;
+      }
+      .nav-section {
+        padding: 8px 20px 4px;
+        font-size: 10px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        color: #374151;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.15s;
+        border-left: 3px solid transparent;
+        text-decoration: none;
+      }
+      .nav-item:hover {
+        background: #f8fafc;
+        color: var(--indigo);
+      }
+      .nav-item.active {
+        background: #eef2ff;
+        color: var(--indigo);
+        border-left-color: var(--indigo);
+        font-weight: 600;
+      }
+      .nav-item svg {
+        flex-shrink: 0;
+        opacity: 0.7;
+      }
+      .nav-item.active svg,
+      .nav-item:hover svg {
+        opacity: 1;
+      }
+      .nav-badge {
+        margin-left: auto;
+        background: #ef4444;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 20px;
+        min-width: 18px;
+        text-align: center;
+      }
 
-    /* ── Main ── */
-    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+      .sidebar-user {
+        padding: 14px 20px;
+        border-top: 1px solid #f3f4f6;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: var(--indigo);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        color: #fff;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      .user-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .user-name {
+        color: #111827;
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .user-role {
+        color: #6b7280;
+        font-size: 11px;
+      }
+      .btn-logout {
+        background: none;
+        border: none;
+        color: #9ca3af;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+        transition: color 0.15s;
+      }
+      .btn-logout:hover {
+        color: #ef4444;
+      }
 
-    /* El saludo va SOBRE el fondo de la página, no en una franja blanca con su
+      /* ── Main ── */
+      .main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* El saludo va SOBRE el fondo de la página, no en una franja blanca con su
        raya: en el diseño la cabecera y las tarjetas son la misma columna, y la
        franja partía la pantalla en dos antes de empezar a leer. */
-    .topbar{
-      background:transparent;padding:28px 28px 26px;
-      display:flex;align-items:center;justify-content:space-between;
-      border-bottom:none;flex-shrink:0;
-      width:100%;max-width:var(--col-ancho);margin:0 auto;
-    }
-    .topbar-left h1{font-size:27px;font-weight:800;color:#111827;letter-spacing:-.4px;}
-    .topbar-left p{font-size:13.5px;color:#6B7280;margin-top:4px;}
-    .topbar-right{display:flex;align-items:center;gap:12px;}
-    .badge-online{display:flex;align-items:center;gap:6px;font-size:13px;color:#6B7280;background:#F0FDF4;border:1px solid #BBF7D0;padding:6px 12px;border-radius:20px;}
-    .dot-green{width:7px;height:7px;background:#22C55E;border-radius:50%;}
+      .topbar {
+        background: transparent;
+        padding: 28px 28px 26px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: none;
+        flex-shrink: 0;
+        width: 100%;
+        max-width: var(--col-ancho);
+        margin: 0 auto;
+      }
+      .topbar-left h1 {
+        font-size: 27px;
+        font-weight: 800;
+        color: #111827;
+        letter-spacing: -0.4px;
+      }
+      .topbar-left p {
+        font-size: 13.5px;
+        color: #6b7280;
+        margin-top: 4px;
+      }
+      .topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .badge-online {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 13px;
+        color: #6b7280;
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        padding: 6px 12px;
+        border-radius: 20px;
+      }
+      .dot-green {
+        width: 7px;
+        height: 7px;
+        background: #22c55e;
+        border-radius: 50%;
+      }
 
-    /* Una columna centrada, no todo el ancho de la pantalla. En un monitor
+      /* Una columna centrada, no todo el ancho de la pantalla. En un monitor
        grande las tarjetas se estiraban hasta perder la relación entre sus
        cifras, y la fila de clientes acababa siendo casi toda hueco. */
-    .content{flex:1;overflow-y:auto;padding:0 28px 40px;}
-    .kpi-grid,.two-col{width:100%;max-width:calc(var(--col-ancho) - 56px);margin-left:auto;margin-right:auto;}
-
-    /* ── Cabecera ── */
-    .head-ayuda{
-      display:flex;align-items:center;gap:7px;
-      background:#fff;border:1px solid #E5E7EB;border-radius:20px;
-      padding:8px 15px;font-size:13px;font-weight:600;color:#4B5563;
-      cursor:pointer;white-space:nowrap;transition:.15s;font-family:inherit;
-    }
-    .head-ayuda:hover{border-color:var(--indigo);color:var(--indigo);}
-
-    /* ── Indicadores ── */
-    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:24px;}
-    .kpi-card{
-      background:#fff;border-radius:16px;padding:20px 22px 18px;
-      border:none;box-shadow:var(--sombra);
-      display:flex;flex-direction:column;gap:12px;
-    }
-    .kpi-top{display:flex;align-items:center;justify-content:space-between;}
-    .kpi-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-    .kpi-icon.indigo{background:#EEF2FF;}
-    .kpi-icon.green {background:#F0FDF4;}
-    .kpi-icon.amber {background:#FFFBEB;}
-    .kpi-icon.blue  {background:#EFF6FF;}
-    /* Flecha discreta arriba a la derecha, no una pastilla de color: en el
-       diseño el indicador no compite con el número. */
-    .kpi-flecha{font-size:15px;line-height:1;color:#9CA3AF;}
-    .kpi-flecha.up{color:#16A34A;}
-    .kpi-flecha.down{color:#DC2626;}
-    .kpi-val{font-size:32px;font-weight:800;color:#111827;line-height:1;letter-spacing:-1px;}
-    .kpi-label{font-size:14px;color:#374151;font-weight:500;margin-top:-4px;}
-    .kpi-sub{font-size:12px;color:#9CA3AF;margin-top:-7px;}
-
-    /* ── Dos columnas ── */
-    .two-col{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:20px;align-items:stretch;}
-
-    /* ── Tarjeta ── */
-    /* La tarjeta crece hasta donde llegue su columna y es el cuerpo el que se
-       estira, para que el pie quede abajo del todo en las dos. */
-    .card{background:#fff;border-radius:16px;border:none;box-shadow:var(--sombra);min-width:0;display:flex;flex-direction:column;}
-    .card-body{flex:1;}
-    .card-head{display:flex;align-items:center;gap:11px;padding:18px 20px;border-bottom:1px solid #F1F2F5;min-width:0;}
-    .card-head>div{min-width:0;}
-    .card-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#F3F4F6;}
-    .card-title{font-size:15px;font-weight:700;color:#111827;}
-    .card-sub{font-size:12px;color:#9CA3AF;margin-top:2px;}
-    .card-badge{
-      margin-left:auto;display:flex;align-items:center;gap:5px;
-      background:#FFFBEB;color:#B45309;font-size:11.5px;font-weight:600;
-      padding:5px 11px;border-radius:20px;white-space:nowrap;
-    }
-    .card-action{margin-left:auto;font-size:12.5px;color:var(--indigo);text-decoration:none;font-weight:600;white-space:nowrap;}
-    .card-action:hover{text-decoration:underline;}
-    .card-body{padding:0;}
-    .card-pie{padding:12px 16px;border-top:1px solid #F1F2F5;}
-    .btn-pie{
-      display:block;width:100%;text-align:center;text-decoration:none;
-      background:#F9FAFB;border:1px solid #E9EBEF;border-radius:9px;
-      padding:10px;font-size:13px;font-weight:600;color:#374151;transition:.15s;
-    }
-    .btn-pie:hover{background:#F3F4F6;color:var(--indigo);border-color:#D9DDE3;}
-
-    /* ── Clientes sin plan ── */
-    .client-row{display:flex;align-items:center;gap:13px;padding:14px 20px;border-bottom:1px solid #F1F2F5;transition:background .12s;}
-    .client-row:last-child{border-bottom:none;}
-    .client-row:hover{background:#FAFBFC;}
-    .c-avatar{
-      position:relative;width:38px;height:38px;border-radius:11px;
-      background:#EEF2FF;color:var(--indigo);
-      display:flex;align-items:center;justify-content:center;
-      font-weight:700;font-size:13px;flex-shrink:0;
-    }
-    /* El punto dice de un vistazo cuánto lleva esperando, sin leer la fecha. */
-    .c-punto{position:absolute;left:-2px;bottom:-2px;width:9px;height:9px;border-radius:50%;border:2px solid #fff;}
-    .c-info{flex:1;min-width:0;}
-    .c-linea{display:flex;align-items:center;gap:8px;min-width:0;}
-    .c-name{font-size:13.5px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .c-meta{display:flex;align-items:center;gap:13px;margin-top:5px;flex-wrap:wrap;}
-    .c-dato{display:flex;align-items:center;gap:5px;font-size:11.5px;color:#6B7280;white-space:nowrap;}
-    .c-dato svg{flex-shrink:0;opacity:.65;}
-    .c-precio{font-size:11.5px;font-weight:700;color:#374151;white-space:nowrap;}
-    .tag{font-size:10px;font-weight:700;padding:2.5px 8px;border-radius:20px;white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:3px;}
-    .tag.urgente{background:#FEF2F2;color:#DC2626;}
-    .tag.aviso  {background:#F3F4F6;color:#6B7280;}
-    .btn-assign{
-      display:flex;align-items:center;gap:6px;
-      font-size:12.5px;font-weight:700;color:#fff;
-      background:var(--indigo);border:none;border-radius:9px;
-      padding:9px 14px;cursor:pointer;white-space:nowrap;transition:background .15s;
-      font-family:inherit;flex-shrink:0;
-    }
-    .btn-assign:hover{background:var(--indigo-dark);}
-
-    /* ── Próximos 5 días ── */
-    .event-row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-bottom:1px solid #F1F2F5;}
-    .event-row:last-child{border-bottom:none;}
-    .event-date-box{
-      min-width:46px;text-align:center;
-      background:#F9FAFB;border:1px solid #EEF0F3;
-      border-radius:10px;padding:6px 4px;flex-shrink:0;
-    }
-    .event-date-box.hoy{background:#EEF2FF;border-color:#C7D2FE;}
-    .event-mon{font-size:9px;color:#9CA3AF;text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
-    .event-date-box.hoy .event-mon{color:var(--indigo);}
-    .event-day{font-size:17px;font-weight:800;color:#111827;line-height:1.15;}
-    .event-punto{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-    .event-info{flex:1;min-width:0;}
-    .event-title{font-size:13px;font-weight:600;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .event-who{font-size:11.5px;color:#9CA3AF;margin-top:2px;display:flex;align-items:center;gap:7px;}
-    .event-row.vacio .event-title{color:#C6CAD1;font-weight:500;font-style:italic;}
-
-    /* ── Empty state ── */
-    .empty{padding:32px 20px;text-align:center;color:#9CA3AF;}
-    .empty svg{opacity:.3;margin-bottom:8px;}
-    .empty p{font-size:13px;}
-
-    /* ── Skeleton ── */
-    .sk{background:linear-gradient(90deg,#F3F4F6 25%,#E5E7EB 50%,#F3F4F6 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
-    @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-    /* ── Toast ── */
-    #toast{position:fixed;bottom:24px;right:24px;background:#111827;color:#fff;padding:12px 18px;border-radius:8px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
-    #toast.show{opacity:1;}
-
-    /* ── Hamburger / mobile sidebar ── */
-    .menu-btn{display:none;background:none;border:none;padding:6px;border-radius:8px;cursor:pointer;color:#374151;align-items:center;justify-content:center;flex-shrink:0;}
-    .menu-btn:hover{background:#F3F4F6;}
-    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;opacity:0;pointer-events:none;transition:opacity .25s;}
-    .sidebar-overlay.open{opacity:1;pointer-events:all;}
-
-    @media(max-width:1100px){
-      .kpi-grid{grid-template-columns:repeat(2,1fr);}
-      .two-col{grid-template-columns:minmax(0,1fr);}
-    }
-    @media(max-width:768px){
-      body{overflow-y:auto;height:auto;display:block;}
-      .sidebar{
-        position:fixed;left:0;top:0;bottom:0;height:100%;z-index:200;
-        transform:translateX(-100%);transition:transform .25s cubic-bezier(.4,0,.2,1);
-        min-width:var(--sidebar-w);
+      .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 28px 40px;
       }
-      .sidebar.open{transform:translateX(0);}
-      .sidebar-overlay{display:block;}
-      .main{width:100%;height:auto;overflow:visible;display:block;}
-      .menu-btn{display:flex;}
-      .topbar{padding:12px 16px;gap:10px;}
-      .topbar-left h1{font-size:17px;}
-      .topbar-left p{font-size:12px;}
-      .badge-online{display:none;}
-      .content{flex:none;overflow-y:visible;padding:16px;}
-      .two-col{grid-template-columns:minmax(0,1fr);}
-    }
-    @media(max-width:480px){
-      .kpi-grid{grid-template-columns:1fr 1fr;gap:10px;}
-      .kpi-val{font-size:24px;}
-      .kpi-card{padding:14px 14px 12px;}
-    }
+      .kpi-grid,
+      .two-col {
+        width: 100%;
+        max-width: calc(var(--col-ancho) - 56px);
+        margin-left: auto;
+        margin-right: auto;
+      }
 
-    .nav-dropdown{display:flex;align-items:center;gap:10px;padding:10px 20px;color:#374151;cursor:pointer;font-size:14px;transition:background .2s,color .2s,border-color .2s;border-left:3px solid transparent;user-select:none;}
-    .nav-dropdown:hover{background:#F8FAFC;color:var(--indigo);}
-    .nav-dropdown.open{background:linear-gradient(90deg,#EEF2FF 0%,#F5F3FF 100%);color:var(--indigo);border-left-color:var(--indigo);font-weight:600;}
-    .nav-dropdown svg:first-child{opacity:.65;flex-shrink:0;transition:opacity .2s;}
-    .nav-dropdown:hover svg:first-child,.nav-dropdown.open svg:first-child{opacity:1;}
-    .nav-chevron{margin-left:auto !important;flex-shrink:0;transition:transform .35s cubic-bezier(.4,0,.2,1);opacity:.5;}
-    .nav-dropdown.open .nav-chevron{transform:rotate(180deg);opacity:1;}
-    .nav-sub{max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.4,0,.2,1),opacity .25s ease;opacity:0;margin:0 10px;border-radius:8px;}
-    .nav-sub.open{max-height:200px;opacity:1;}
-    .nav-sub-item{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 14px;color:#6B7280;font-size:12.5px;text-decoration:none;transition:color .15s,background .15s,padding-left .2s;border-radius:6px;margin:2px 0;}
-    .nav-sub-item svg{opacity:.6;flex-shrink:0;transition:opacity .15s;}
-    .nav-sub-item:hover{color:var(--indigo);background:#EEF2FF;padding-left:18px;}
-    .nav-sub-item:hover svg{opacity:1;}
-    .nav-sub-item.active{color:var(--indigo);font-weight:600;background:#EEF2FF;}
+      /* ── Cabecera ── */
+      .head-ayuda {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 8px 15px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #4b5563;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.15s;
+        font-family: inherit;
+      }
+      .head-ayuda:hover {
+        border-color: var(--indigo);
+        color: var(--indigo);
+      }
 
-    .nav-sub-item{cursor:pointer;}
-    .sub-arrow{margin-left:auto;opacity:.4;flex-shrink:0;}
-    .nav-sub-item:hover .sub-arrow{opacity:1;}
-    .flyout-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:#374151;text-decoration:none;font-size:13.5px;transition:background .15s,color .15s;cursor:pointer;}
-    .flyout-item:hover{background:#F5F3FF;color:#4F46E5;}
-    .flyout-item svg{opacity:.6;flex-shrink:0;}
-    .flyout-item:hover svg{opacity:1;}
-  
-    /* Logo de marca (icono ALZUM) junto al nombre */
-    .sidebar-logo{display:flex;align-items:center;gap:11px;padding:18px 18px 16px;}
-    .sl-mark{width:40px;height:40px;border-radius:9px;background:url('logo.webp') no-repeat 50% 41%;background-size:210px;flex-shrink:0;}
-    .sl-txt{display:flex;flex-direction:column;line-height:1.15;min-width:0;}
-</style>
-<script src="js/org-context.js"></script>
-<script src="js/nav-roles.js"></script>
-  <!-- El menú de la Librería, en un solo sitio. Estaba copiado en 31 páginas
+      /* ── Indicadores ── */
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+      }
+      .kpi-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px 22px 18px;
+        border: none;
+        box-shadow: var(--sombra);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .kpi-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .kpi-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .kpi-icon.indigo {
+        background: #eef2ff;
+      }
+      .kpi-icon.green {
+        background: #f0fdf4;
+      }
+      .kpi-icon.amber {
+        background: #fffbeb;
+      }
+      .kpi-icon.blue {
+        background: #eff6ff;
+      }
+      /* Flecha discreta arriba a la derecha, no una pastilla de color: en el
+       diseño el indicador no compite con el número. */
+      .kpi-flecha {
+        font-size: 15px;
+        line-height: 1;
+        color: #9ca3af;
+      }
+      .kpi-flecha.up {
+        color: #16a34a;
+      }
+      .kpi-flecha.down {
+        color: #dc2626;
+      }
+      .kpi-val {
+        font-size: 32px;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1;
+        letter-spacing: -1px;
+      }
+      .kpi-label {
+        font-size: 14px;
+        color: #374151;
+        font-weight: 500;
+        margin-top: -4px;
+      }
+      .kpi-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: -7px;
+      }
+
+      /* ── Dos columnas ── */
+      .two-col {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 360px;
+        gap: 20px;
+        align-items: stretch;
+      }
+
+      /* ── Tarjeta ── */
+      /* La tarjeta crece hasta donde llegue su columna y es el cuerpo el que se
+       estira, para que el pie quede abajo del todo en las dos. */
+      .card {
+        background: #fff;
+        border-radius: 16px;
+        border: none;
+        box-shadow: var(--sombra);
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+      .card-body {
+        flex: 1;
+      }
+      .card-head {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 18px 20px;
+        border-bottom: 1px solid #f1f2f5;
+        min-width: 0;
+      }
+      .card-head > div {
+        min-width: 0;
+      }
+      .card-ico {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        background: #f3f4f6;
+      }
+      .card-title {
+        font-size: 15px;
+        font-weight: 700;
+        color: #111827;
+      }
+      .card-sub {
+        font-size: 12px;
+        color: #9ca3af;
+        margin-top: 2px;
+      }
+      .card-badge {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: #fffbeb;
+        color: #b45309;
+        font-size: 11.5px;
+        font-weight: 600;
+        padding: 5px 11px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .card-action {
+        margin-left: auto;
+        font-size: 12.5px;
+        color: var(--indigo);
+        text-decoration: none;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .card-action:hover {
+        text-decoration: underline;
+      }
+      .card-body {
+        padding: 0;
+      }
+      .card-pie {
+        padding: 12px 16px;
+        border-top: 1px solid #f1f2f5;
+      }
+      .btn-pie {
+        display: block;
+        width: 100%;
+        text-align: center;
+        text-decoration: none;
+        background: #f9fafb;
+        border: 1px solid #e9ebef;
+        border-radius: 9px;
+        padding: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #374151;
+        transition: 0.15s;
+      }
+      .btn-pie:hover {
+        background: #f3f4f6;
+        color: var(--indigo);
+        border-color: #d9dde3;
+      }
+
+      /* ── Clientes sin plan ── */
+      .client-row {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f1f2f5;
+        transition: background 0.12s;
+      }
+      .client-row:last-child {
+        border-bottom: none;
+      }
+      .client-row:hover {
+        background: #fafbfc;
+      }
+      .c-avatar {
+        position: relative;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: #eef2ff;
+        color: var(--indigo);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      /* El punto dice de un vistazo cuánto lleva esperando, sin leer la fecha. */
+      .c-punto {
+        position: absolute;
+        left: -2px;
+        bottom: -2px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+      }
+      .c-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .c-linea {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 0;
+      }
+      .c-name {
+        font-size: 13.5px;
+        font-weight: 700;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .c-meta {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        margin-top: 5px;
+        flex-wrap: wrap;
+      }
+      .c-dato {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11.5px;
+        color: #6b7280;
+        white-space: nowrap;
+      }
+      .c-dato svg {
+        flex-shrink: 0;
+        opacity: 0.65;
+      }
+      .c-precio {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: #374151;
+        white-space: nowrap;
+      }
+      .tag {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2.5px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+      .tag.urgente {
+        background: #fef2f2;
+        color: #dc2626;
+      }
+      .tag.aviso {
+        background: #f3f4f6;
+        color: #6b7280;
+      }
+      .btn-assign {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #fff;
+        background: var(--indigo);
+        border: none;
+        border-radius: 9px;
+        padding: 9px 14px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s;
+        font-family: inherit;
+        flex-shrink: 0;
+      }
+      .btn-assign:hover {
+        background: var(--indigo-dark);
+      }
+
+      /* ── Próximos 5 días ── */
+      .event-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 16px;
+        border-bottom: 1px solid #f1f2f5;
+      }
+      .event-row:last-child {
+        border-bottom: none;
+      }
+      .event-date-box {
+        min-width: 46px;
+        text-align: center;
+        background: #f9fafb;
+        border: 1px solid #eef0f3;
+        border-radius: 10px;
+        padding: 6px 4px;
+        flex-shrink: 0;
+      }
+      .event-date-box.hoy {
+        background: #eef2ff;
+        border-color: #c7d2fe;
+      }
+      .event-mon {
+        font-size: 9px;
+        color: #9ca3af;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+      }
+      .event-date-box.hoy .event-mon {
+        color: var(--indigo);
+      }
+      .event-day {
+        font-size: 17px;
+        font-weight: 800;
+        color: #111827;
+        line-height: 1.15;
+      }
+      .event-punto {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .event-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .event-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .event-who {
+        font-size: 11.5px;
+        color: #9ca3af;
+        margin-top: 2px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .event-row.vacio .event-title {
+        color: #c6cad1;
+        font-weight: 500;
+        font-style: italic;
+      }
+
+      /* ── Empty state ── */
+      .empty {
+        padding: 32px 20px;
+        text-align: center;
+        color: #9ca3af;
+      }
+      .empty svg {
+        opacity: 0.3;
+        margin-bottom: 8px;
+      }
+      .empty p {
+        font-size: 13px;
+      }
+
+      /* ── Skeleton ── */
+      .sk {
+        background: linear-gradient(
+          90deg,
+          #f3f4f6 25%,
+          #e5e7eb 50%,
+          #f3f4f6 75%
+        );
+        background-size: 200% 100%;
+        animation: shimmer 1.4s infinite;
+        border-radius: 6px;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      /* ── Toast ── */
+      #toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        background: #111827;
+        color: #fff;
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 999;
+      }
+      #toast.show {
+        opacity: 1;
+      }
+
+      /* ── Hamburger / mobile sidebar ── */
+      .menu-btn {
+        display: none;
+        background: none;
+        border: none;
+        padding: 6px;
+        border-radius: 8px;
+        cursor: pointer;
+        color: #374151;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .menu-btn:hover {
+        background: #f3f4f6;
+      }
+      .sidebar-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 199;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .sidebar-overlay.open {
+        opacity: 1;
+        pointer-events: all;
+      }
+
+      @media (max-width: 1100px) {
+        .kpi-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .two-col {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 768px) {
+        body {
+          overflow-y: auto;
+          height: auto;
+          display: block;
+        }
+        .sidebar {
+          position: fixed;
+          left: 0;
+          top: 0;
+          bottom: 0;
+          height: 100%;
+          z-index: 200;
+          transform: translateX(-100%);
+          transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+          min-width: var(--sidebar-w);
+        }
+        .sidebar.open {
+          transform: translateX(0);
+        }
+        .sidebar-overlay {
+          display: block;
+        }
+        .main {
+          width: 100%;
+          height: auto;
+          overflow: visible;
+          display: block;
+        }
+        .menu-btn {
+          display: flex;
+        }
+        .topbar {
+          padding: 12px 16px;
+          gap: 10px;
+        }
+        .topbar-left h1 {
+          font-size: 17px;
+        }
+        .topbar-left p {
+          font-size: 12px;
+        }
+        .badge-online {
+          display: none;
+        }
+        .content {
+          flex: none;
+          overflow-y: visible;
+          padding: 16px;
+        }
+        .two-col {
+          grid-template-columns: minmax(0, 1fr);
+        }
+      }
+      @media (max-width: 480px) {
+        .kpi-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+        }
+        .kpi-val {
+          font-size: 24px;
+        }
+        .kpi-card {
+          padding: 14px 14px 12px;
+        }
+      }
+
+      .nav-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        color: #374151;
+        cursor: pointer;
+        font-size: 14px;
+        transition:
+          background 0.2s,
+          color 0.2s,
+          border-color 0.2s;
+        border-left: 3px solid transparent;
+        user-select: none;
+      }
+      .nav-dropdown:hover {
+        background: #f8fafc;
+        color: var(--indigo);
+      }
+      .nav-dropdown.open {
+        background: linear-gradient(90deg, #eef2ff 0%, #f5f3ff 100%);
+        color: var(--indigo);
+        border-left-color: var(--indigo);
+        font-weight: 600;
+      }
+      .nav-dropdown svg:first-child {
+        opacity: 0.65;
+        flex-shrink: 0;
+        transition: opacity 0.2s;
+      }
+      .nav-dropdown:hover svg:first-child,
+      .nav-dropdown.open svg:first-child {
+        opacity: 1;
+      }
+      .nav-chevron {
+        margin-left: auto !important;
+        flex-shrink: 0;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        opacity: 0.5;
+      }
+      .nav-dropdown.open .nav-chevron {
+        transform: rotate(180deg);
+        opacity: 1;
+      }
+      .nav-sub {
+        max-height: 0;
+        overflow: hidden;
+        transition:
+          max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+          opacity 0.25s ease;
+        opacity: 0;
+        margin: 0 10px;
+        border-radius: 8px;
+      }
+      .nav-sub.open {
+        max-height: 200px;
+        opacity: 1;
+      }
+      .nav-sub-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px 8px 14px;
+        color: #6b7280;
+        font-size: 12.5px;
+        text-decoration: none;
+        transition:
+          color 0.15s,
+          background 0.15s,
+          padding-left 0.2s;
+        border-radius: 6px;
+        margin: 2px 0;
+      }
+      .nav-sub-item svg {
+        opacity: 0.6;
+        flex-shrink: 0;
+        transition: opacity 0.15s;
+      }
+      .nav-sub-item:hover {
+        color: var(--indigo);
+        background: #eef2ff;
+        padding-left: 18px;
+      }
+      .nav-sub-item:hover svg {
+        opacity: 1;
+      }
+      .nav-sub-item.active {
+        color: var(--indigo);
+        font-weight: 600;
+        background: #eef2ff;
+      }
+
+      .nav-sub-item {
+        cursor: pointer;
+      }
+      .sub-arrow {
+        margin-left: auto;
+        opacity: 0.4;
+        flex-shrink: 0;
+      }
+      .nav-sub-item:hover .sub-arrow {
+        opacity: 1;
+      }
+      .flyout-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        color: #374151;
+        text-decoration: none;
+        font-size: 13.5px;
+        transition:
+          background 0.15s,
+          color 0.15s;
+        cursor: pointer;
+      }
+      .flyout-item:hover {
+        background: #f5f3ff;
+        color: #4f46e5;
+      }
+      .flyout-item svg {
+        opacity: 0.6;
+        flex-shrink: 0;
+      }
+      .flyout-item:hover svg {
+        opacity: 1;
+      }
+
+      /* Logo de marca (icono ALZUM) junto al nombre */
+      .sidebar-logo {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 18px 18px 16px;
+      }
+      .sl-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 9px;
+        background: url("logo.webp") no-repeat 50% 41%;
+        background-size: 210px;
+        flex-shrink: 0;
+      }
+      .sl-txt {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.15;
+        min-width: 0;
+      }
+    </style>
+    <script src="js/org-context.js"></script>
+    <script src="js/nav-roles.js"></script>
+    <!-- El menú de la Librería, en un solo sitio. Estaba copiado en 31 páginas
        y una copia ya se había quedado atrás. -->
-  <script src="js/libreria-menu.js"></script>
-  <!-- Atajo al panel de plataforma desde la barra del coach. Solo lo ve el
+    <script src="js/libreria-menu.js"></script>
+    <!-- Atajo al panel de plataforma desde la barra del coach. Solo lo ve el
        super-admin; el módulo lo comprueba contra el servidor. -->
-  <script src="js/ir-al-panel.js"></script>
-  <script src="js/libreria-flyout.js"></script>
-</head>
-<body>
+    <script src="js/ir-al-panel.js"></script>
+    <script src="js/libreria-flyout.js"></script>
+  </head>
+  <body>
+    <div
+      class="sidebar-overlay"
+      id="sidebarOverlay"
+      onclick="closeSidebar()"
+    ></div>
 
-<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
-<!-- Sidebar -->
-<div class="sidebar" id="sidebar">
-  <div class="sidebar-logo"><div class="sl-mark" role="img" aria-label="ALZUM.io"></div><div class="sl-txt"><span>ALZUM<em>.io</em></span><small>Panel del Coach</small></div></div>
-  <nav class="sidebar-nav">
-    <div class="nav-section">Principal</div>
-    <a class="nav-item active" href="dashboard.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Inicio
-    </a>
-    <a class="nav-item" href="events.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-      Mi Calendario
-      <span class="nav-badge" id="agendaBadge" style="display:none"></span>
-    </a>
-    <a class="nav-item" href="clients.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Clientes
-    </a>
-    <a class="nav-item" href="checkins.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-      Check-ins
-      <span class="nav-badge" id="checkinsBadge" style="display:none"></span>
-    </a>
-    <div class="nav-section">Contenido</div>
-    <a class="nav-item" href="programas.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-      Programas
-    </a>
-    <div class="nav-item nav-dropdown" onclick="toggleLibrary(this)" id="navLibrary">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-      Librería
-      <svg class="nav-chevron" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
-    </div>
-    <div class="nav-sub" id="librarySub">
-      <div class="nav-sub-item" onclick="openFlyout(event,'entrenamiento')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M6 4v16M18 4v16M6 12h12"/></svg>Entrenamiento<svg class="sub-arrow" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-      <div class="nav-sub-item" onclick="openFlyout(event,'nutricion')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Nutrición<svg class="sub-arrow" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-      <div class="nav-sub-item" onclick="openFlyout(event,'formulario')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Formulario<svg class="sub-arrow" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-      <div class="nav-sub-item" onclick="openFlyout(event,'documento')"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Documento<svg class="sub-arrow" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></div>
-    </div>
-    <div class="nav-section">Comunicación</div>
-    <a class="nav-item" href="forms.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Formularios
-      <span class="nav-badge" id="formsBadge" style="display:none"></span>
-    </a>
-    <a class="nav-item" href="notes.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      Notas
-    </a>
-    <a class="nav-item" href="chat.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Chat
-    </a>
-    <a class="nav-item" href="progress.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-      Progreso
-    </a>
-    <div class="nav-section">Negocio</div>
-    <a class="nav-item" href="analytics.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analíticas
-    </a>
-    <a class="nav-item" href="coaches.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      Equipo
-    </a>
-    <a class="nav-item" href="mi-organizacion.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V7l7-4 7 4v14"/><path d="M9 21v-6h6v6"/></svg>
-      Mi Organización
-    </a>
-    <div class="nav-section">Cuenta</div>
-    <a class="nav-item" href="settings.html">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      Ajustes
-    </a>
-  </nav>
-  <div class="sidebar-user">
-    <div class="avatar" id="userAvatar">A</div>
-    <div class="user-info">
-      <div class="user-name" id="userName">Cargando...</div>
-      <div class="user-role" id="userRole">—</div>
-    </div>
-    <button class="btn-logout" onclick="logout()" title="Cerrar sesión">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-    </button>
-  </div>
-</div>
-
-<!-- Main -->
-<div class="main">
-  <div class="topbar">
-    <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menú">
-      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-    </button>
-    <div class="topbar-left">
-      <h1 id="greetMsg">Bienvenido</h1>
-      <p id="todayDate">—</p>
-      <p id="greetRole" style="display:none;font-size:12px;font-weight:600;color:#4F46E5;margin-top:2px;letter-spacing:.3px;text-transform:uppercase;"></p>
-    </div>
-    <div class="topbar-right">
-      <span id="topbarRoleBadge" style="font-size:11px;font-weight:700;color:#4F46E5;background:#EEF2FF;padding:3px 10px;border-radius:20px;white-space:nowrap;"></span>
-      <!-- Abre la ayuda que ya existe en la burbuja, en vez de montar otra. -->
-      <button class="head-ayuda" onclick="abrirAyuda()">
-        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Ayuda
-      </button>
-    </div>
-  </div>
-
-  <div class="content">
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid" id="kpiGrid">
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-icon indigo"><svg width="19" height="19" fill="none" stroke="#4F46E5" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
-          <span class="kpi-flecha" id="flechaActive"></span>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sl-mark" role="img" aria-label="ALZUM.io"></div>
+        <div class="sl-txt">
+          <span>ALZUM<em>.io</em></span
+          ><small>Panel del Coach</small>
         </div>
-        <div class="kpi-val sk" id="valActive" style="width:52px;height:31px;">&nbsp;</div>
-        <div class="kpi-label">Clientes activos</div>
-        <div class="kpi-sub" id="subActive">&nbsp;</div>
       </div>
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-icon amber"><svg width="19" height="19" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2v6M12 16v6M4.9 4.9l4.2 4.2M14.9 14.9l4.2 4.2M2 12h6M16 12h6M4.9 19.1l4.2-4.2M14.9 9.1l4.2-4.2"/></svg></div>
-          <span class="kpi-flecha" id="flechaNew"></span>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Principal</div>
+        <a class="nav-item active" href="dashboard.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
+          Inicio
+        </a>
+        <a class="nav-item" href="events.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          Mi Calendario
+          <span class="nav-badge" id="agendaBadge" style="display: none"></span>
+        </a>
+        <a class="nav-item" href="clients.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Clientes
+        </a>
+        <a class="nav-item" href="checkins.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M9 11l3 3L22 4" />
+            <path
+              d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+            />
+          </svg>
+          Check-ins
+          <span
+            class="nav-badge"
+            id="checkinsBadge"
+            style="display: none"
+          ></span>
+        </a>
+        <div class="nav-section">Contenido</div>
+        <a class="nav-item" href="programas.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polygon points="12 2 2 7 12 12 22 7 12 2" />
+            <polyline points="2 17 12 22 22 17" />
+            <polyline points="2 12 12 17 22 12" />
+          </svg>
+          Programas
+        </a>
+        <div
+          class="nav-item nav-dropdown"
+          onclick="toggleLibrary(this)"
+          id="navLibrary"
+        >
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path
+              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
+            />
+          </svg>
+          Librería
+          <svg
+            class="nav-chevron"
+            width="12"
+            height="12"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polyline points="6 9 12 15 18 9" />
+          </svg>
         </div>
-        <div class="kpi-val sk" id="valNew" style="width:52px;height:31px;">&nbsp;</div>
-        <div class="kpi-label">Nuevos este mes</div>
-        <div class="kpi-sub" id="subNew">&nbsp;</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-icon blue"><svg width="19" height="19" fill="none" stroke="#2563EB" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
-          <span class="kpi-flecha" id="flechaCheckins"></span>
-        </div>
-        <div class="kpi-val sk" id="valCheckins" style="width:52px;height:31px;">&nbsp;</div>
-        <div class="kpi-label">Check-ins por revisar</div>
-        <div class="kpi-sub" id="subCheckins">&nbsp;</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-icon amber"><svg width="19" height="19" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
-          <span class="kpi-flecha" id="flechaPlanes"></span>
-        </div>
-        <div class="kpi-val sk" id="valPlanes" style="width:52px;height:31px;">&nbsp;</div>
-        <div class="kpi-label">Planes pendientes</div>
-        <div class="kpi-sub" id="subPlanes">&nbsp;</div>
-      </div>
-    </div>
-
-    <!-- Dos columnas -->
-    <div class="two-col">
-
-      <!-- Izquierda: clientes esperando su plan -->
-      <div class="card">
-        <div class="card-head">
-          <span class="card-ico">
-            <svg width="16" height="16" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          </span>
-          <div>
-            <div class="card-title">Clientes sin plan</div>
-            <div class="card-sub">Requieren acción</div>
+        <div class="nav-sub" id="librarySub">
+          <div
+            class="nav-sub-item"
+            onclick="openFlyout(event, 'entrenamiento')"
+          >
+            <svg
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M6 4v16M18 4v16M6 12h12" /></svg
+            >Entrenamiento<svg
+              class="sub-arrow"
+              width="10"
+              height="10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </div>
-          <span class="card-badge" id="noPlanBadge">
-            <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span id="noPlanCount">—</span>
-          </span>
+          <div class="nav-sub-item" onclick="openFlyout(event, 'nutricion')">
+            <svg
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg
+            >Nutrición<svg
+              class="sub-arrow"
+              width="10"
+              height="10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+          <div class="nav-sub-item" onclick="openFlyout(event, 'formulario')">
+            <svg
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" /></svg
+            >Formulario<svg
+              class="sub-arrow"
+              width="10"
+              height="10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
+          <div class="nav-sub-item" onclick="openFlyout(event, 'documento')">
+            <svg
+              width="13"
+              height="13"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <path
+                d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+              />
+              <polyline points="14 2 14 8 20 8" /></svg
+            >Documento<svg
+              class="sub-arrow"
+              width="10"
+              height="10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              viewBox="0 0 24 24"
+            >
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
         </div>
-        <div class="card-body" id="noPlanList">
-          <div class="empty"><p>Cargando clientes…</p></div>
+        <div class="nav-section">Comunicación</div>
+        <a class="nav-item" href="forms.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+          </svg>
+          Formularios
+          <span class="nav-badge" id="formsBadge" style="display: none"></span>
+        </a>
+        <a class="nav-item" href="notes.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+            />
+            <polyline points="14 2 14 8 20 8" />
+          </svg>
+          Notas
+        </a>
+        <a class="nav-item" href="chat.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path
+              d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+            />
+          </svg>
+          Chat
+        </a>
+        <a class="nav-item" href="progress.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          Progreso
+        </a>
+        <div class="nav-section">Negocio</div>
+        <a class="nav-item" href="analytics.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+          Analíticas
+        </a>
+        <a class="nav-item" href="coaches.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="8" r="4" />
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+          </svg>
+          Equipo
+        </a>
+        <a class="nav-item" href="mi-organizacion.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M3 21h18" />
+            <path d="M5 21V7l7-4 7 4v14" />
+            <path d="M9 21v-6h6v6" />
+          </svg>
+          Mi Organización
+        </a>
+        <div class="nav-section">Cuenta</div>
+        <a class="nav-item" href="settings.html">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <circle cx="12" cy="12" r="3" />
+            <path
+              d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"
+            />
+          </svg>
+          Ajustes
+        </a>
+      </nav>
+      <div class="sidebar-user">
+        <div class="avatar" id="userAvatar">A</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Cargando...</div>
+          <div class="user-role" id="userRole">—</div>
         </div>
-        <div class="card-pie"><a class="btn-pie" href="clients.html">Ver todos los clientes →</a></div>
+        <button class="btn-logout" onclick="logout()" title="Cerrar sesión">
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </button>
       </div>
-
-      <!-- Derecha: próximos 5 días -->
-      <div class="card">
-        <div class="card-head">
-          <span class="card-ico">
-            <svg width="16" height="16" fill="none" stroke="#D97706" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          </span>
-          <div class="card-title">Próximos 5 días</div>
-          <a class="card-action" href="events.html">Ver todo →</a>
-        </div>
-        <div class="card-body" id="upcomingList">
-          <div class="empty"><p>Cargando agenda…</p></div>
-        </div>
-        <div class="card-pie"><a class="btn-pie" href="events.html">Abrir calendario →</a></div>
-      </div>
-
     </div>
-  </div>
-</div>
 
-<div id="toast"></div>
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()" aria-label="Menú">
+          <svg
+            width="20"
+            height="20"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+          >
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div class="topbar-left">
+          <h1 id="greetMsg">Bienvenido</h1>
+          <p id="todayDate">—</p>
+          <p
+            id="greetRole"
+            style="
+              display: none;
+              font-size: 12px;
+              font-weight: 600;
+              color: #4f46e5;
+              margin-top: 2px;
+              letter-spacing: 0.3px;
+              text-transform: uppercase;
+            "
+          ></p>
+        </div>
+        <div class="topbar-right">
+          <span
+            id="topbarRoleBadge"
+            style="
+              font-size: 11px;
+              font-weight: 700;
+              color: #4f46e5;
+              background: #eef2ff;
+              padding: 3px 10px;
+              border-radius: 20px;
+              white-space: nowrap;
+            "
+          ></span>
+          <!-- Abre la ayuda que ya existe en la burbuja, en vez de montar otra. -->
+          <button class="head-ayuda" onclick="abrirAyuda()">
+            <svg
+              width="14"
+              height="14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+            Ayuda
+          </button>
+        </div>
+      </div>
 
-<script>
-const API = API_ORIGIN;
-const MONTHS = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-const DAYS   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-const DIAS   = DAYS;
-const DIAS_LARGOS  = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
-const MESES_LARGOS = ['enero','febrero','marzo','abril','mayo','junio','julio',
-                      'agosto','septiembre','octubre','noviembre','diciembre'];
+      <div class="content">
+        <!-- KPI Cards -->
+        <div class="kpi-grid" id="kpiGrid">
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon indigo">
+                <svg
+                  width="19"
+                  height="19"
+                  fill="none"
+                  stroke="#4F46E5"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <span class="kpi-flecha" id="flechaActive"></span>
+            </div>
+            <div
+              class="kpi-val sk"
+              id="valActive"
+              style="width: 52px; height: 31px"
+            >
+              &nbsp;
+            </div>
+            <div class="kpi-label">Clientes activos</div>
+            <div class="kpi-sub" id="subActive">&nbsp;</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon amber">
+                <svg
+                  width="19"
+                  height="19"
+                  fill="none"
+                  stroke="#D97706"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M12 2v6M12 16v6M4.9 4.9l4.2 4.2M14.9 14.9l4.2 4.2M2 12h6M16 12h6M4.9 19.1l4.2-4.2M14.9 9.1l4.2-4.2"
+                  />
+                </svg>
+              </div>
+              <span class="kpi-flecha" id="flechaNew"></span>
+            </div>
+            <div
+              class="kpi-val sk"
+              id="valNew"
+              style="width: 52px; height: 31px"
+            >
+              &nbsp;
+            </div>
+            <div class="kpi-label">Nuevos este mes</div>
+            <div class="kpi-sub" id="subNew">&nbsp;</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon blue">
+                <svg
+                  width="19"
+                  height="19"
+                  fill="none"
+                  stroke="#2563EB"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M9 11l3 3L22 4" />
+                  <path
+                    d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                  />
+                </svg>
+              </div>
+              <span class="kpi-flecha" id="flechaCheckins"></span>
+            </div>
+            <div
+              class="kpi-val sk"
+              id="valCheckins"
+              style="width: 52px; height: 31px"
+            >
+              &nbsp;
+            </div>
+            <div class="kpi-label">Check-ins por revisar</div>
+            <div class="kpi-sub" id="subCheckins">&nbsp;</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-top">
+              <div class="kpi-icon amber">
+                <svg
+                  width="19"
+                  height="19"
+                  fill="none"
+                  stroke="#D97706"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </div>
+              <span class="kpi-flecha" id="flechaPlanes"></span>
+            </div>
+            <div
+              class="kpi-val sk"
+              id="valPlanes"
+              style="width: 52px; height: 31px"
+            >
+              &nbsp;
+            </div>
+            <div class="kpi-label">Planes pendientes</div>
+            <div class="kpi-sub" id="subPlanes">&nbsp;</div>
+          </div>
+        </div>
 
-/* El nombre de un cliente lo escribe una persona y acaba dentro de HTML. */
-function esc(s){
-  return String(s==null?'':s).replace(/[&<>"']/g, c => ({
-    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
-  }[c]));
-}
+        <!-- Dos columnas -->
+        <div class="two-col">
+          <!-- Izquierda: clientes esperando su plan -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-ico">
+                <svg
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="#D97706"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+              </span>
+              <div>
+                <div class="card-title">Clientes sin plan</div>
+                <div class="card-sub">Requieren acción</div>
+              </div>
+              <span class="card-badge" id="noPlanBadge">
+                <svg
+                  width="11"
+                  height="11"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <span id="noPlanCount">—</span>
+              </span>
+            </div>
+            <div class="card-body" id="noPlanList">
+              <div class="empty"><p>Cargando clientes…</p></div>
+            </div>
+            <div class="card-pie">
+              <a class="btn-pie" href="clients.html"
+                >Ver todos los clientes →</a
+              >
+            </div>
+          </div>
 
-function tok(){ return localStorage.getItem('token'); }
+          <!-- Derecha: próximos 5 días -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-ico">
+                <svg
+                  width="16"
+                  height="16"
+                  fill="none"
+                  stroke="#D97706"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" />
+                  <line x1="16" y1="2" x2="16" y2="6" />
+                  <line x1="8" y1="2" x2="8" y2="6" />
+                  <line x1="3" y1="10" x2="21" y2="10" />
+                </svg>
+              </span>
+              <div class="card-title">Próximos 5 días</div>
+              <a class="card-action" href="events.html">Ver todo →</a>
+            </div>
+            <div class="card-body" id="upcomingList">
+              <div class="empty"><p>Cargando agenda…</p></div>
+            </div>
+            <div class="card-pie">
+              <a class="btn-pie" href="events.html">Abrir calendario →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
-function toast(msg, dur=3000){
-  const el=document.getElementById('toast');
-  el.textContent=msg; el.classList.add('show');
-  setTimeout(()=>el.classList.remove('show'),dur);
-}
+    <div id="toast"></div>
 
-async function api(path, opts={}){
-  const res = await fetch(API+path, {
-    ...opts,
-    headers:{'Authorization':'Bearer '+tok(),'Content-Type':'application/json',...(opts.headers||{})}
-  });
-  if(res.status===401){ logout(); return null; }
-  return res.json();
-}
+    <script>
+      const API = API_ORIGIN;
+      const MONTHS = [
+        "ene",
+        "feb",
+        "mar",
+        "abr",
+        "may",
+        "jun",
+        "jul",
+        "ago",
+        "sep",
+        "oct",
+        "nov",
+        "dic",
+      ];
+      const DAYS = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      const DIAS = DAYS;
+      const DIAS_LARGOS = [
+        "Domingo",
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+      ];
+      const MESES_LARGOS = [
+        "enero",
+        "febrero",
+        "marzo",
+        "abril",
+        "mayo",
+        "junio",
+        "julio",
+        "agosto",
+        "septiembre",
+        "octubre",
+        "noviembre",
+        "diciembre",
+      ];
 
-function logout(){
-  api('/api/auth/logout',{method:'POST'}).catch(()=>{});
-  ['token','refresh_token','role_id'].forEach(k=>localStorage.removeItem(k));
-  window.location.href='login.html';
-}
+      /* El nombre de un cliente lo escribe una persona y acaba dentro de HTML. */
+      function esc(s) {
+        return String(s == null ? "" : s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+      }
 
-function initials(name=''){
-  return name.trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
-}
+      function tok() {
+        return localStorage.getItem("token");
+      }
 
-function setKpi(id, value){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.classList.remove('sk');
-  el.style.width=''; el.style.height='';
-  el.textContent=value;
-}
+      function toast(msg, dur = 3000) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.classList.add("show");
+        setTimeout(() => el.classList.remove("show"), dur);
+      }
 
-function setSub(id, texto){
-  const el=document.getElementById(id);
-  if(el) el.textContent=texto||' ';
-}
+      async function api(path, opts = {}) {
+        const res = await fetch(API + path, {
+          ...opts,
+          headers: {
+            Authorization: "Bearer " + tok(),
+            "Content-Type": "application/json",
+            ...(opts.headers || {}),
+          },
+        });
+        if (res.status === 401) {
+          logout();
+          return null;
+        }
+        return res.json();
+      }
 
-/* La flecha del diseño: discreta, arriba a la derecha. Solo se pinta cuando
+      function logout() {
+        api("/api/auth/logout", { method: "POST" }).catch(() => {});
+        ["token", "refresh_token", "role_id"].forEach((k) =>
+          localStorage.removeItem(k),
+        );
+        window.location.href = "login.html";
+      }
+
+      function initials(name = "") {
+        return (
+          name
+            .trim()
+            .split(/\s+/)
+            .slice(0, 2)
+            .map((w) => w[0] || "")
+            .join("")
+            .toUpperCase() || "?"
+        );
+      }
+
+      function setKpi(id, value) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("sk");
+        el.style.width = "";
+        el.style.height = "";
+        el.textContent = value;
+      }
+
+      function setSub(id, texto) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = texto || " ";
+      }
+
+      /* La flecha del diseño: discreta, arriba a la derecha. Solo se pinta cuando
    hay algo que decir; una flecha gris permanente es ruido. */
-function setFlecha(id, sentido){
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.className='kpi-flecha'+(sentido?' '+sentido:'');
-  el.textContent=sentido==='up'?'↑':sentido==='down'?'↓':'';
-}
+      function setFlecha(id, sentido) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.className = "kpi-flecha" + (sentido ? " " + sentido : "");
+        el.textContent = sentido === "up" ? "↑" : sentido === "down" ? "↓" : "";
+      }
 
-function abrirAyuda(){
-  const b=document.getElementById('sopBtn');
-  if(b){ b.click(); return; }
-  toast('La ayuda está cargando, inténtalo en un momento');
-}
+      function abrirAyuda() {
+        const b = document.getElementById("sopBtn");
+        if (b) {
+          b.click();
+          return;
+        }
+        toast("La ayuda está cargando, inténtalo en un momento");
+      }
 
-function haceCuanto(iso){
-  if(!iso) return null;
-  const dias=Math.floor((Date.now()-new Date(iso).getTime())/86400000);
-  if(dias<=0){
-    const horas=Math.floor((Date.now()-new Date(iso).getTime())/3600000);
-    return horas<=1?'Alta hace 1 hora':'Alta hace '+horas+' horas';
-  }
-  if(dias===1) return 'Alta hace 1 día';
-  if(dias<30)  return 'Alta hace '+dias+' días';
-  const meses=Math.floor(dias/30);
-  return 'Alta hace '+meses+(meses===1?' mes':' meses');
-}
+      function haceCuanto(iso) {
+        if (!iso) return null;
+        const dias = Math.floor(
+          (Date.now() - new Date(iso).getTime()) / 86400000,
+        );
+        if (dias <= 0) {
+          const horas = Math.floor(
+            (Date.now() - new Date(iso).getTime()) / 3600000,
+          );
+          return horas <= 1
+            ? "Alta hace 1 hora"
+            : "Alta hace " + horas + " horas";
+        }
+        if (dias === 1) return "Alta hace 1 día";
+        if (dias < 30) return "Alta hace " + dias + " días";
+        const meses = Math.floor(dias / 30);
+        return "Alta hace " + meses + (meses === 1 ? " mes" : " meses");
+      }
 
-function diasDesde(iso){
-  if(!iso) return 0;
-  return Math.floor((Date.now()-new Date(iso).getTime())/86400000);
-}
+      function diasDesde(iso) {
+        if (!iso) return 0;
+        return Math.floor((Date.now() - new Date(iso).getTime()) / 86400000);
+      }
 
-async function load(){
-  if(!tok()){ window.location.href='login.html'; return; }
+      async function load() {
+        if (!tok()) {
+          window.location.href = "login.html";
+          return;
+        }
 
-  const now=new Date();
-  const h=now.getHours();
-  const greeting=h<13?'Buenos días':h<19?'Buenas tardes':'Buenas noches';
-  const fecha=DIAS_LARGOS[now.getDay()]+', '+now.getDate()+' de '+
-    MESES_LARGOS[now.getMonth()]+' de '+now.getFullYear();
-  document.getElementById('todayDate').textContent=fecha;
+        const now = new Date();
+        const h = now.getHours();
+        const greeting =
+          h < 13 ? "Buenos días" : h < 19 ? "Buenas tardes" : "Buenas noches";
+        const fecha =
+          DIAS_LARGOS[now.getDay()] +
+          ", " +
+          now.getDate() +
+          " de " +
+          MESES_LARGOS[now.getMonth()] +
+          " de " +
+          now.getFullYear();
+        document.getElementById("todayDate").textContent = fecha;
 
-  const me = await api('/api/auth/me');
-  if(!me) return;
-  const u=me.data||{};
-  const name=u.name||'Coach';
-  document.getElementById('greetMsg').textContent=greeting+', '+name.split(' ')[0];
-  document.getElementById('userName').textContent=name;
-  const roleName=(u.roles&&u.roles[0]?.name)||'';
-  document.getElementById('userRole').textContent=roleName||'—';
-  (function(){var _av=document.getElementById('userAvatar');if(u.photo){_av.innerHTML='<img src="'+u.photo+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';_av.style.background='transparent';}else{_av.textContent=initials(name);}})()
+        const me = await api("/api/auth/me");
+        if (!me) return;
+        const u = me.data || {};
+        const name = u.name || "Coach";
+        document.getElementById("greetMsg").textContent =
+          greeting + ", " + name.split(" ")[0];
+        document.getElementById("userName").textContent = name;
+        const roleName = (u.roles && u.roles[0]?.name) || "";
+        document.getElementById("userRole").textContent = roleName || "—";
+        (function () {
+          var _av = document.getElementById("userAvatar");
+          if (u.photo) {
+            _av.innerHTML =
+              '<img src="' +
+              u.photo +
+              '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">';
+            _av.style.background = "transparent";
+          } else {
+            _av.textContent = initials(name);
+          }
+        })();
 
-  /* La cartera trae los clientes YA enriquecidos —quién tiene plan, cuánto
+        /* La cartera trae los clientes YA enriquecidos —quién tiene plan, cuánto
      paga, desde cuándo— en una sola llamada. Antes esta pantalla pedía
      `/api/users?role_id=3`, una ruta que no existe: devolvía 405 y el panel de
      "clientes sin plan" salía siempre vacío, dijera lo que dijera la realidad. */
-  /* La agenda se pide por VENTANA a `/events/search`, que es la ruta que
+        /* La agenda se pide por VENTANA a `/events/search`, que es la ruta que
      existe: `/events` a secas devolvía 405, así que `evItems` llegaba vacío
      siempre y los "Próximos 5 días" enseñaban cinco "Sin eventos" dijera lo
      que dijera el calendario. Es el mismo fallo que ya tuvo la cartera de
      clientes, en la llamada de al lado. */
-  const desde = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const hasta = new Date(desde);
-  hasta.setDate(hasta.getDate() + 5);
-  hasta.setHours(23, 59, 59);
-  const ventana = new URLSearchParams({ start: desde.toISOString(), end: hasta.toISOString() });
+        const desde = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        );
+        const hasta = new Date(desde);
+        hasta.setDate(hasta.getDate() + 5);
+        hasta.setHours(23, 59, 59);
+        const ventana = new URLSearchParams({
+          start: desde.toISOString(),
+          end: hasta.toISOString(),
+        });
 
-  const [ov, band, ev, cart] = await Promise.all([
-    api('/api/analytics/overview'),
-    api('/api/checkins/bandeja'),
-    api('/api/events/search?' + ventana),
-    api('/api/users/clients/portfolio'),
-  ]);
+        const [ov, band, ev, cart] = await Promise.all([
+          api("/api/analytics/overview"),
+          api("/api/checkins/bandeja"),
+          api("/api/events/search?" + ventana),
+          api("/api/users/clients/portfolio"),
+        ]);
 
-  const stats   = cart?.data?.stats || {};
-  const clients = cart?.data?.clients || [];
+        const stats = cart?.data?.stats || {};
+        const clients = cart?.data?.clients || [];
 
-  // ── Clientes activos ──
-  const activos = stats.activos ?? ov?.data?.active_clients;
-  setKpi('valActive', activos??'—');
-  const nuevos = ov?.data?.new_this_month;
-  if(typeof nuevos==='number' && nuevos>0){
-    setFlecha('flechaActive','up');
-    setSub('subActive','+'+nuevos+' este mes');
-  } else {
-    setFlecha('flechaActive','');
-    setSub('subActive',(ov?.data?.total_clients??'—')+' en total');
-  }
+        // ── Clientes activos ──
+        const activos = stats.activos ?? ov?.data?.active_clients;
+        setKpi("valActive", activos ?? "—");
+        const nuevos = ov?.data?.new_this_month;
+        if (typeof nuevos === "number" && nuevos > 0) {
+          setFlecha("flechaActive", "up");
+          setSub("subActive", "+" + nuevos + " este mes");
+        } else {
+          setFlecha("flechaActive", "");
+          setSub("subActive", (ov?.data?.total_clients ?? "—") + " en total");
+        }
 
-  // ── Nuevos este mes ──
-  setKpi('valNew', nuevos??'—');
-  setSub('subNew', nuevos===0?'Ninguno todavía':'Altas del mes en curso');
+        // ── Nuevos este mes ──
+        setKpi("valNew", nuevos ?? "—");
+        setSub(
+          "subNew",
+          nuevos === 0 ? "Ninguno todavía" : "Altas del mes en curso",
+        );
 
-  // ── Check-ins por revisar ──
-  const porRevisar=(band?.data?.recibidos||[]).length;
-  setKpi('valCheckins', porRevisar);
-  const esperando=(band?.data?.esperando||[]).length;
-  setSub('subCheckins', esperando>0
-    ? esperando+(esperando===1?' esperando enviar':' esperando enviar')
-    : 'Nadie pendiente de enviar');
-  setFlecha('flechaCheckins', porRevisar>0?'down':'');
+        // ── Check-ins por revisar ──
+        const porRevisar = (band?.data?.recibidos || []).length;
+        setKpi("valCheckins", porRevisar);
+        const esperando = (band?.data?.esperando || []).length;
+        setSub(
+          "subCheckins",
+          esperando > 0
+            ? esperando +
+                (esperando === 1 ? " esperando enviar" : " esperando enviar")
+            : "Nadie pendiente de enviar",
+        );
+        setFlecha("flechaCheckins", porRevisar > 0 ? "down" : "");
 
-  // ── Planes pendientes ──
-  const sinPlan=clients.filter(c=>c.sin_plan && c.lifecycle_status==='activo');
-  // Urgente = lleva más de dos días de alta esperando su plan.
-  const urgentes=sinPlan.filter(c=>diasDesde(c.alta)>=3).length;
-  setKpi('valPlanes', sinPlan.length);
-  setSub('subPlanes', urgentes>0?urgentes+(urgentes===1?' urgente':' urgentes'):'Ninguno urgente');
-  setFlecha('flechaPlanes', urgentes>0?'down':'');
+        // ── Planes pendientes ──
+        const sinPlan = clients.filter(
+          (c) => c.sin_plan && c.lifecycle_status === "activo",
+        );
+        // Urgente = lleva más de dos días de alta esperando su plan.
+        const urgentes = sinPlan.filter((c) => diasDesde(c.alta) >= 3).length;
+        setKpi("valPlanes", sinPlan.length);
+        setSub(
+          "subPlanes",
+          urgentes > 0
+            ? urgentes + (urgentes === 1 ? " urgente" : " urgentes")
+            : "Ninguno urgente",
+        );
+        setFlecha("flechaPlanes", urgentes > 0 ? "down" : "");
 
-  // ── Cuántas cosas hay que hacer hoy ──
-  const acciones=porRevisar+sinPlan.length;
-  document.getElementById('todayDate').textContent=
-    fecha+(acciones>0?'  ·  '+acciones+(acciones===1?' acción pendiente hoy':' acciones pendientes hoy'):'  ·  Nada pendiente hoy');
+        // ── Cuántas cosas hay que hacer hoy ──
+        const acciones = porRevisar + sinPlan.length;
+        document.getElementById("todayDate").textContent =
+          fecha +
+          (acciones > 0
+            ? "  ·  " +
+              acciones +
+              (acciones === 1
+                ? " acción pendiente hoy"
+                : " acciones pendientes hoy")
+            : "  ·  Nada pendiente hoy");
 
-  renderNoPlan(sinPlan);
+        renderNoPlan(sinPlan);
 
-  // ── Próximos 5 días ──
-  const evItems=ev?.data?.items||ev?.data||[];
-  renderUpcoming(evItems, now);
+        // ── Próximos 5 días ──
+        const evItems = ev?.data?.items || ev?.data || [];
+        renderUpcoming(evItems, now);
 
-  // Insignias del menú.
-  if(porRevisar>0){
-    const badge=document.getElementById('checkinsBadge');
-    if(badge){ badge.textContent=porRevisar>99?'99+':porRevisar; badge.style.display='inline-block'; }
-  }
-  // Lo que pasa HOY en la agenda: es lo que la insignia del diseño cuenta.
-  const hoyClave=new Date(now.getFullYear(),now.getMonth(),now.getDate()).toISOString().slice(0,10);
-  const deHoy=evItems.filter(e=>{
-    const d=new Date(e.date||e.scheduled_at||e.start_date);
-    return !isNaN(d) && d.toISOString().slice(0,10)===hoyClave;
-  }).length;
-  if(deHoy>0){
-    const ab=document.getElementById('agendaBadge');
-    if(ab){ ab.textContent=deHoy>99?'99+':deHoy; ab.style.display='inline-block'; }
-  }
-  try{
-    const fr=await api('/api/form-assignments?status=pending&per_page=1');
-    const total=(fr?.data?.total)||(fr?.total)||0;
-    const fb=document.getElementById('formsBadge');
-    if(fb&&total>0){fb.textContent=total>99?'99+':total;fb.style.display='inline-block';}
-  }catch{}
-}
+        // Insignias del menú.
+        if (porRevisar > 0) {
+          const badge = document.getElementById("checkinsBadge");
+          if (badge) {
+            badge.textContent = porRevisar > 99 ? "99+" : porRevisar;
+            badge.style.display = "inline-block";
+          }
+        }
+        // Lo que pasa HOY en la agenda: es lo que la insignia del diseño cuenta.
+        const hoyClave = new Date(
+          now.getFullYear(),
+          now.getMonth(),
+          now.getDate(),
+        )
+          .toISOString()
+          .slice(0, 10);
+        const deHoy = evItems.filter((e) => {
+          const d = new Date(e.date || e.scheduled_at || e.start_date);
+          return !isNaN(d) && d.toISOString().slice(0, 10) === hoyClave;
+        }).length;
+        if (deHoy > 0) {
+          const ab = document.getElementById("agendaBadge");
+          if (ab) {
+            ab.textContent = deHoy > 99 ? "99+" : deHoy;
+            ab.style.display = "inline-block";
+          }
+        }
+        try {
+          const fr = await api(
+            "/api/form-assignments?status=pending&per_page=1",
+          );
+          const total = fr?.data?.total || fr?.total || 0;
+          const fb = document.getElementById("formsBadge");
+          if (fb && total > 0) {
+            fb.textContent = total > 99 ? "99+" : total;
+            fb.style.display = "inline-block";
+          }
+        } catch {}
+      }
 
-function renderNoPlan(clients){
-  const el=document.getElementById('noPlanList');
-  document.getElementById('noPlanCount').textContent=
-    clients.length+(clients.length===1?' pendiente':' pendientes');
+      function renderNoPlan(clients) {
+        const el = document.getElementById("noPlanList");
+        document.getElementById("noPlanCount").textContent =
+          clients.length +
+          (clients.length === 1 ? " pendiente" : " pendientes");
 
-  if(!clients.length){
-    el.innerHTML=`<div class="empty">
+        if (!clients.length) {
+          el.innerHTML = `<div class="empty">
       <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       <p>Todos tus clientes activos tienen plan</p>
     </div>`;
-    return;
-  }
+          return;
+        }
 
-  /* Primero quien lleva más tiempo esperando: es el que peor lo está pasando
+        /* Primero quien lleva más tiempo esperando: es el que peor lo está pasando
      y el que antes se va. */
-  const orden=clients.slice().sort((a,b)=>diasDesde(b.alta)-diasDesde(a.alta));
+        const orden = clients
+          .slice()
+          .sort((a, b) => diasDesde(b.alta) - diasDesde(a.alta));
 
-  el.innerHTML=orden.slice(0,8).map(c=>{
-    const nombre=((c.name||'')+' '+(c.last_name||'')).trim()||c.email||'—';
-    const dias=diasDesde(c.alta);
-    const punto=dias>=7?'#DC2626':dias>=3?'#F59E0B':'#3B82F6';
-    const etiqueta=dias>=3
-      ? '<span class="tag urgente"><svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Urgente</span>'
-      : (!c.objective ? '<span class="tag aviso">Sin formulario</span>' : '');
-    const objetivo=c.objective?.name;
-    const alta=haceCuanto(c.alta);
-    return `<div class="client-row">
+        el.innerHTML = orden
+          .slice(0, 8)
+          .map((c) => {
+            const nombre =
+              ((c.name || "") + " " + (c.last_name || "")).trim() ||
+              c.email ||
+              "—";
+            const dias = diasDesde(c.alta);
+            const punto =
+              dias >= 7 ? "#DC2626" : dias >= 3 ? "#F59E0B" : "#3B82F6";
+            const etiqueta =
+              dias >= 3
+                ? '<span class="tag urgente"><svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Urgente</span>'
+                : !c.objective
+                  ? '<span class="tag aviso">Sin formulario</span>'
+                  : "";
+            const objetivo = c.objective?.name;
+            const alta = haceCuanto(c.alta);
+            return `<div class="client-row">
       <div class="c-avatar">${initials(nombre)}<span class="c-punto" style="background:${punto};"></span></div>
       <div class="c-info">
         <div class="c-linea"><span class="c-name">${esc(nombre)}</span>${etiqueta}</div>
         <div class="c-meta">
-          ${objetivo?`<span class="c-dato"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>${esc(objetivo)}</span>`:''}
-          ${alta?`<span class="c-dato"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${alta}</span>`:''}
-          ${c.precio!=null?`<span class="c-precio">${c.precio}€/mes</span>`:''}
+          ${objetivo ? `<span class="c-dato"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>${esc(objetivo)}</span>` : ""}
+          ${alta ? `<span class="c-dato"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${alta}</span>` : ""}
+          ${c.precio != null ? `<span class="c-precio">${c.precio}€/mes</span>` : ""}
         </div>
       </div>
       <button class="btn-assign" onclick="window.location.href='client-profile.html?id=${c.id}'">
@@ -683,94 +2016,114 @@ function renderNoPlan(clients){
         <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
       </button>
     </div>`;
-  }).join('');
-}
+          })
+          .join("");
+      }
 
-/* El diseño enseña CINCO días seguidos, no los cinco próximos eventos: los
+      /* El diseño enseña CINCO días seguidos, no los cinco próximos eventos: los
    días sin nada también salen, con su "Sin eventos". Un hueco vacío en la
    agenda es información —ahí cabe una sesión—, y saltárselo hace creer que la
    semana está más llena de lo que está. */
-function renderUpcoming(eventos, ahora){
-  const el=document.getElementById('upcomingList');
-  /* Cada tipo de evento trae SU color, el mismo que pinta el calendario. Un
+      function renderUpcoming(eventos, ahora) {
+        const el = document.getElementById("upcomingList");
+        /* Cada tipo de evento trae SU color, el mismo que pinta el calendario. Un
      mapa de nombres aquí se quedaría atrás en cuanto alguien creara un tipo
      nuevo, y el punto saldría gris. */
-  const GRIS='#9CA3AF';
+        const GRIS = "#9CA3AF";
 
-  const porDia={};
-  eventos.forEach(e=>{
-    const d=new Date(e.date||e.scheduled_at||e.start_date);
-    if(isNaN(d)) return;
-    const clave=d.toISOString().slice(0,10);
-    (porDia[clave]=porDia[clave]||[]).push({ev:e,fecha:d});
-  });
+        const porDia = {};
+        eventos.forEach((e) => {
+          const d = new Date(e.date || e.scheduled_at || e.start_date);
+          if (isNaN(d)) return;
+          const clave = d.toISOString().slice(0, 10);
+          (porDia[clave] = porDia[clave] || []).push({ ev: e, fecha: d });
+        });
 
-  const filas=[];
-  for(let i=0;i<5;i++){
-    const d=new Date(ahora); d.setDate(d.getDate()+i); d.setHours(0,0,0,0);
-    const clave=d.toISOString().slice(0,10);
-    const etiqueta=i===0?'Hoy':i===1?'Mañana':DIAS[d.getDay()];
-    const delDia=(porDia[clave]||[]).sort((a,b)=>a.fecha-b.fecha);
+        const filas = [];
+        for (let i = 0; i < 5; i++) {
+          const d = new Date(ahora);
+          d.setDate(d.getDate() + i);
+          d.setHours(0, 0, 0, 0);
+          const clave = d.toISOString().slice(0, 10);
+          const etiqueta =
+            i === 0 ? "Hoy" : i === 1 ? "Mañana" : DIAS[d.getDay()];
+          const delDia = (porDia[clave] || []).sort(
+            (a, b) => a.fecha - b.fecha,
+          );
 
-    if(!delDia.length){
-      filas.push(`<div class="event-row vacio">
-        ${cajaFecha(etiqueta,d,i===0)}
+          if (!delDia.length) {
+            filas.push(`<div class="event-row vacio">
+        ${cajaFecha(etiqueta, d, i === 0)}
         <div class="event-info"><div class="event-title">Sin eventos</div></div>
       </div>`);
-      continue;
-    }
-    delDia.forEach((x,n)=>{
-      const e=x.ev;
-      const color=(e.type_event&&e.type_event.color)||GRIS;
-      // Un evento de todo el día no tiene hora que enseñar.
-      const hora=(!e.all_day && (x.fecha.getHours()||x.fecha.getMinutes()))
-        ? String(x.fecha.getHours()).padStart(2,'0')+':'+String(x.fecha.getMinutes()).padStart(2,'0')
-        : '';
-      const quien=e.client_name||e.description||'';
-      filas.push(`<div class="event-row">
-        ${n===0?cajaFecha(etiqueta,d,i===0):'<div style="min-width:46px;flex-shrink:0;"></div>'}
+            continue;
+          }
+          delDia.forEach((x, n) => {
+            const e = x.ev;
+            const color = (e.type_event && e.type_event.color) || GRIS;
+            // Un evento de todo el día no tiene hora que enseñar.
+            const hora =
+              !e.all_day && (x.fecha.getHours() || x.fecha.getMinutes())
+                ? String(x.fecha.getHours()).padStart(2, "0") +
+                  ":" +
+                  String(x.fecha.getMinutes()).padStart(2, "0")
+                : "";
+            const quien = e.client_name || e.description || "";
+            filas.push(`<div class="event-row">
+        ${n === 0 ? cajaFecha(etiqueta, d, i === 0) : '<div style="min-width:46px;flex-shrink:0;"></div>'}
         <span class="event-punto" style="background:${color};"></span>
         <div class="event-info">
-          <div class="event-title">${esc(e.title||e.name||'Evento')}</div>
+          <div class="event-title">${esc(e.title || e.name || "Evento")}</div>
           <div class="event-who">
-            ${quien?`<span>con ${esc(quien)}</span>`:''}
-            ${hora?`<span>🕘 ${hora}</span>`:''}
+            ${quien ? `<span>con ${esc(quien)}</span>` : ""}
+            ${hora ? `<span>🕘 ${hora}</span>` : ""}
           </div>
         </div>
       </div>`);
-    });
-  }
-  el.innerHTML=filas.join('');
-}
+          });
+        }
+        el.innerHTML = filas.join("");
+      }
 
-function cajaFecha(etiqueta,d,esHoy){
-  return `<div class="event-date-box${esHoy?' hoy':''}">
+      function cajaFecha(etiqueta, d, esHoy) {
+        return `<div class="event-date-box${esHoy ? " hoy" : ""}">
     <div class="event-mon">${esc(etiqueta)}</div>
     <div class="event-day">${d.getDate()}</div>
   </div>`;
-}
+      }
 
-function toggleSidebar(){
-  document.getElementById('sidebar').classList.toggle('open');
-  document.getElementById('sidebarOverlay').classList.toggle('open');
-}
-function closeSidebar(){
-  document.getElementById('sidebar').classList.remove('open');
-  document.getElementById('sidebarOverlay').classList.remove('open');
-}
+      function toggleSidebar() {
+        document.getElementById("sidebar").classList.toggle("open");
+        document.getElementById("sidebarOverlay").classList.toggle("open");
+      }
+      function closeSidebar() {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarOverlay").classList.remove("open");
+      }
 
-load();
-</script>
-<script>
+      load();
+    </script>
+    <script>
+      (function () {
+        var _rm = {
+          1: "Superadmin",
+          2: "Admin",
+          3: "Setter",
+          4: "Closer",
+          5: "Coach",
+          6: "Cliente",
+          7: "Editor de contenido global",
+        };
+        var _rid = parseInt(localStorage.getItem("role_id") || "0");
+        var _el = document.getElementById("topbarRoleBadge");
+        if (_el && _rm[_rid]) _el.textContent = _rm[_rid];
+      })();
+    </script>
 
-  (function(){var _rm={1:'Superadmin',2:'Admin',3:'Setter',4:'Closer',5:'Coach',6:'Cliente',7:'Editor de contenido global'};var _rid=parseInt(localStorage.getItem('role_id')||'0');var _el=document.getElementById('topbarRoleBadge');if(_el&&_rm[_rid])_el.textContent=_rm[_rid];})();
-</script>
-
-<script src="js/chat-badge.js"></script>
-<script src="js/soporte.js"></script>
-<script>
-/* CHAT_UNREAD_BADGE — badge rojo de mensajes de chat no leídos en el panel */
-
-</script>
-</body>
+    <script src="js/chat-badge.js"></script>
+    <script src="js/soporte.js"></script>
+    <script>
+      /* CHAT_UNREAD_BADGE — badge rojo de mensajes de chat no leídos en el panel */
+    </script>
+  </body>
 </html>
