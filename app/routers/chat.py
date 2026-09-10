@@ -424,6 +424,30 @@ def _sincronizar_audiencia(conv: ChatConversation, db: Session) -> None:
         db.commit()
 
 
+def _grupos_por_regla_que_me_tocan(user_id: int, db: Session) -> list:
+    """Grupos por regla creados por gente de mi cuenta.
+
+    Un grupo por regla solo se recalculaba cuando lo abría QUIEN LO CREÓ. Un
+    cliente dado de alta después de montar "mis clientes" no entraba en él
+    hasta que su coach volviera a mirar su lista de chats: mientras tanto el
+    grupo existía, los demás hablaban dentro y a él no le aparecía por ningún
+    lado. Se recalcula también desde este lado, que es el que se queda fuera.
+    """
+    relacionados = set(_alcance(user_id, db))
+    relacionados.update(_coaches_de_un_cliente(user_id, db))
+    relacionados.discard(user_id)
+    if not relacionados:
+        return []
+    return (
+        db.query(ChatConversation)
+        .filter(
+            ChatConversation.audience.isnot(None),
+            ChatConversation.created_by_user_id.in_(relacionados),
+        )
+        .all()
+    )
+
+
 # ── REST endpoints ────────────────────────────────────────────────────────────
 
 @router.get("/contactos", summary="Con quién puedo hablar",
@@ -476,6 +500,11 @@ def list_conversations(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
+    # Antes de mirar en cuáles estoy, se ponen al día los grupos por regla de
+    # mi cuenta: si no, quien entra después de crearlos no los ve nunca.
+    for grupo in _grupos_por_regla_que_me_tocan(current_user.id, db):
+        _sincronizar_audiencia(grupo, db)
+
     participations = (
         db.query(ChatParticipant)
         .filter(ChatParticipant.user_id == current_user.id)

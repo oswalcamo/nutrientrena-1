@@ -103,6 +103,38 @@
     .send-btn:hover{background:var(--indigo-dark);}
     .send-btn:disabled{opacity:.5;cursor:default;}
 
+    /* ── Lista de conversaciones ────────────────────────────────────────────
+       El cliente tenía UNA sola conversación escrita a fuego: la de su coach.
+       Si su coach o el centro montaban un grupo, seguía sin verlo — estaba
+       dentro, le llegaban los mensajes y no tenía por dónde entrar. */
+    .chat-wrap{flex:1;display:flex;min-height:0;overflow:hidden;}
+    .chat-pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
+    .convcol{width:290px;min-width:290px;background:#fff;border-right:1px solid #E5E7EB;display:flex;flex-direction:column;overflow:hidden;}
+    .conv-search{padding:12px 14px;border-bottom:1px solid #EEF0F3;}
+    .conv-search input{width:100%;padding:9px 12px;border:1px solid #E5E7EB;border-radius:9px;font-size:13.5px;outline:none;font-family:inherit;background:#F8FAFC;color:#111;}
+    .conv-search input:focus{border-color:var(--indigo);background:#fff;}
+    .conv-list{flex:1;overflow-y:auto;}
+    .conv-item{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;border-bottom:1px solid #F5F6F8;}
+    .conv-item:hover{background:#F8FAFC;}
+    .conv-item.active{background:var(--indigo-pale);}
+    .conv-avatar{width:40px;height:40px;border-radius:50%;background:var(--indigo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;overflow:hidden;}
+    .conv-avatar img{width:100%;height:100%;object-fit:cover;}
+    .conv-avatar.grupo{background:var(--green-pale);color:var(--green);font-size:17px;}
+    .conv-info{flex:1;min-width:0;}
+    .conv-name{font-size:13.5px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .conv-last{font-size:12px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+    .conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
+    .conv-time{font-size:10.5px;color:#9CA3AF;}
+    .conv-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#DC2626;color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;}
+    .conv-empty{padding:26px 18px;text-align:center;color:#9CA3AF;font-size:13px;line-height:1.5;}
+    /* En el móvil no caben las dos columnas, y la que no puede desaparecer es
+       la de escribir: la lista se abre por encima con este botón. */
+    .btn-lista{display:none;background:none;border:none;color:#374151;cursor:pointer;padding:6px;border-radius:8px;margin-right:2px;position:relative;}
+    .btn-lista:hover{background:#F3F4F6;}
+    .btn-lista .punto{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#DC2626;display:none;}
+    .conv-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:170;}
+    .conv-overlay.open{display:block;}
+
     .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:#1F2937;color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:600;opacity:0;transition:.3s;z-index:400;}
     .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
     .toast.err{background:#DC2626;}
@@ -116,6 +148,11 @@
       .chat-head{padding:14px 16px;}
       .chat-inner,.composer-inner{padding-left:14px;padding-right:14px;}
       .msg{max-width:82%;}
+      .convcol{position:fixed;top:0;left:0;bottom:0;width:86%;max-width:320px;
+        transform:translateX(-100%);transition:transform .25s;z-index:180;
+        box-shadow:0 0 30px rgba(0,0,0,.18);}
+      .convcol.open{transform:translateX(0);}
+      .btn-lista{display:flex;align-items:center;justify-content:center;}
     }
     /* iOS: la barra de gestos del iPhone se come el borde de abajo. */
     @supports(padding:max(0px)){
@@ -167,7 +204,22 @@
     <div class="topbar-title">Chat</div>
   </div>
 
+  <div class="chat-wrap">
+    <aside class="convcol" id="convCol">
+      <div class="conv-search">
+        <input type="text" id="convBuscar" placeholder="Buscar conversación…" autocomplete="off" oninput="filtrarConvs(this.value)"/>
+      </div>
+      <div class="conv-list" id="convList">
+        <div class="conv-empty">Cargando…</div>
+      </div>
+    </aside>
+
+    <div class="chat-pane">
   <div class="chat-head">
+    <button class="btn-lista" id="btnLista" onclick="alternarLista()" title="Tus conversaciones" aria-label="Tus conversaciones">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span class="punto" id="puntoLista"></span>
+    </button>
     <div class="ch-avatar" id="coachAvatar">S<span class="ch-dot"></span></div>
     <div>
       <div class="ch-name" id="coachName">Tu coach</div>
@@ -201,8 +253,11 @@
       </button>
     </div>
   </div>
+    </div><!-- .chat-pane -->
+  </div><!-- .chat-wrap -->
 </div>
 
+<div class="conv-overlay" id="convOverlay" onclick="cerrarLista()"></div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -216,6 +271,30 @@
   let _tt; function toast(msg,err){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'+(err?' err':''); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2400); }
 
   let _convId=null, _coach=null, _msgs=[], _poll=null, _lastCount=-1;
+  /* Quién soy. Antes se daba por hecho que todo lo que no escribía el coach
+     lo escribía yo, y en un grupo eso pinta los mensajes de los demás como
+     si fueran míos. */
+  let _yo=null;
+  let _convs=[], _activa=null, _busca='', _noLeidos={}, _chatOn=true;
+
+  function esGrupo(c){ return !!c && c.type==='group'; }
+  function otroDe(c){
+    var ps=(c&&c.participants)||[];
+    for(var i=0;i<ps.length;i++){ if(ps[i].user_id!==_yo) return ps[i]; }
+    return null;
+  }
+  function nombreConv(c){
+    if(!c) return 'Tu coach';
+    if(esGrupo(c)) return c.name||'Grupo';
+    var o=otroDe(c);
+    return (o&&o.name&&o.name.trim())||c.name||(_coach&&_coach.name)||'Tu coach';
+  }
+  function esMio(m){
+    // Sin saber quién soy —si /auth/me falla— se cae al criterio de antes,
+    // que en la conversación con el coach sigue siendo correcto.
+    return _yo!=null ? m.sender_user_id===_yo
+                     : m.sender_user_id!==(_coach&&_coach.user_id);
+  }
 
   const _DAYS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   function dayLabel(d){
@@ -249,19 +328,136 @@
          + '<span class="sz">'+tamAdj(m.attachment_size)+'</span></span></a>';
   }
 
+  /* ── La lista de conversaciones ────────────────────────────────────────
+     Todo lo que hay aquí sale de /chat/conversations, que devuelve aquello en
+     lo que el usuario ES participante. No hace falta ningún permiso nuevo: el
+     grupo que monta el coach o el centro ya metía al cliente dentro; lo que
+     faltaba era la pantalla donde entrar. */
+
+  function alternarLista(){
+    document.getElementById('convCol').classList.toggle('open');
+    document.getElementById('convOverlay').classList.toggle('open');
+  }
+  function cerrarLista(){
+    document.getElementById('convCol').classList.remove('open');
+    document.getElementById('convOverlay').classList.remove('open');
+  }
+
+  function filtrarConvs(q){ _busca=(q||'').trim().toLowerCase(); pintarLista(); }
+
+  function resumenUltimo(c){
+    var lm=c.last_message;
+    if(!lm) return 'Sin mensajes';
+    var t=(lm.content||'').trim();
+    if(t) return esc(t).slice(0,44);
+    if(lm.attachment_url) return '📎 '+esc(lm.attachment_name||'Archivo').slice(0,36);
+    return 'Sin mensajes';
+  }
+
+  function pintarLista(){
+    var el=document.getElementById('convList');
+    var lista=_convs.filter(function(c){
+      return !_busca || nombreConv(c).toLowerCase().indexOf(_busca)>=0;
+    });
+    var sinLeer=0;
+    _convs.forEach(function(c){ sinLeer+=(_noLeidos[c.id]||0); });
+    var punto=document.getElementById('puntoLista');
+    if(punto) punto.style.display=sinLeer>0?'block':'none';
+
+    if(!lista.length){
+      el.innerHTML='<div class="conv-empty">'
+        + (_busca ? 'Ninguna conversación se llama así.'
+                  : 'Todavía no tienes conversaciones.')
+        + '</div>';
+      return;
+    }
+    el.innerHTML=lista.map(function(c){
+      var grupo=esGrupo(c);
+      var o=grupo?null:otroDe(c);
+      var nom=nombreConv(c);
+      var avatar = (o&&o.photo)
+        ? '<div class="conv-avatar"><img src="'+esc(o.photo)+'" alt=""></div>'
+        : '<div class="conv-avatar'+(grupo?' grupo':'')+'">'
+          + (grupo?'👥':esc((nom.trim()[0]||'?').toUpperCase()))+'</div>';
+      var n=_noLeidos[c.id]||0;
+      var hora=c.last_message?hhmm(new Date(c.last_message.created_at)):'';
+      return '<div class="conv-item'+(_activa&&_activa.id===c.id?' active':'')+'"'
+        + ' data-conv="'+esc(c.id)+'">'
+        + avatar
+        + '<div class="conv-info"><div class="conv-name">'+esc(nom)+'</div>'
+        + '<div class="conv-last">'+resumenUltimo(c)+'</div></div>'
+        + '<div class="conv-meta"><span class="conv-time">'+esc(hora)+'</span>'
+        + (n?'<span class="conv-badge">'+(n>99?'99+':n)+'</span>':'')
+        + '</div></div>';
+    }).join('');
+  }
+
+  document.getElementById('convList').addEventListener('click', function(ev){
+    var fila=ev.target.closest('.conv-item');
+    if(fila && fila.dataset.conv) abrirConv(fila.dataset.conv);
+  });
+
+  async function abrirConv(id){
+    var c=_convs.filter(function(x){ return x.id===id; })[0];
+    if(!c) return;
+    _activa=c; _convId=c.id; _msgs=[]; _lastCount=-1;
+    quitarAdjunto();
+    document.getElementById('msgInput').disabled=false;
+    document.getElementById('sendBtn').disabled=false;
+    pintarCabecera();
+    aplicarEstadoChat();
+    pintarLista();
+    cerrarLista();
+    document.getElementById('chatInner').innerHTML='<div class="chat-empty">Cargando conversación…</div>';
+    await loadMessages(true);
+    _noLeidos[c.id]=0;
+    pintarLista();
+  }
+
+  async function cargarConversaciones(primera){
+    try{
+      var res=await Promise.all([
+        fetch(API+'/chat/conversations',{headers:headers()}),
+        fetch(API+'/chat/unread-count',{headers:headers()})
+      ]);
+      var dc=await res[0].json();
+      var du=await res[1].json().catch(function(){ return {}; });
+      _convs=(dc&&dc.data)||[];
+      _noLeidos={};
+      (((du||{}).data||{}).conversations||[]).forEach(function(x){
+        _noLeidos[x.conversation_id]=x.count;
+      });
+      // La conversación abierta se refresca con su versión nueva: si no, la
+      // cabecera se queda con el nombre viejo cuando renombran el grupo.
+      if(_activa){
+        var f=_convs.filter(function(x){ return x.id===_activa.id; })[0];
+        if(f){ _activa=f; pintarCabecera(); aplicarEstadoChat(); }
+      }
+      if(primera){
+        // La del coach es la que se abre al entrar: es a quien le escribe el
+        // cliente el 99% de las veces. Los grupos quedan a un clic.
+        var elegida=_convs.filter(function(x){ return x.id===_convId; })[0]||_convs[0];
+        if(elegida) await abrirConv(elegida.id);
+      }
+      if(_activa) _noLeidos[_activa.id]=0;
+      pintarLista();
+    }catch(e){}
+  }
+
   function renderMessages(keepScroll){
     var box=document.getElementById('chatInner');
     if(!_msgs.length){
-      box.innerHTML='<div class="chat-empty"><svg width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><br>Aún no hay mensajes.<br>Escríbele a tu coach para empezar.</div>';
+      box.innerHTML='<div class="chat-empty"><svg width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><br>Aún no hay mensajes.<br>'
+        + (esGrupo(_activa) ? 'Este grupo todavía está en silencio.'
+                            : 'Escríbele a tu coach para empezar.')+'</div>';
       return;
     }
-    var coachId=_coach&&_coach.user_id;
     var html='', lastDay=null;
     _msgs.forEach(function(m){
       var d=m.created_at?new Date(m.created_at):new Date();
       var dl=dayLabel(d);
       if(dl!==lastDay){ html+='<div class="sep">'+dl+'</div>'; lastDay=dl; }
-      var mine=(m.sender_user_id!==coachId);
+      var mine=esMio(m);
       /* El coach puede mandar una foto o el PDF de la dieta. Sin pintarlo, al
          cliente le llegaba una burbuja vacía: veía que había mensaje nuevo y
          no había nada dentro. */
@@ -269,7 +465,7 @@
       var cuerpo=(m.attachment_url?adjuntoHtml(m):'')+(texto?'<div class="bubble">'+esc(texto)+'</div>':'');
       if(!cuerpo) cuerpo='<div class="bubble" style="opacity:.6;">—</div>';
       html+='<div class="msg '+(mine?'me':'them')+'">'
-        + (mine?'':'<div class="msg-sender">'+esc(m.sender_name||(_coach&&_coach.name)||'Coach')+'</div>')
+        + (mine?'':'<div class="msg-sender">'+esc(m.sender_name||nombreConv(_activa))+'</div>')
         + cuerpo
         + '<div class="msg-time">'+hhmm(d)+'</div>'
         + '</div>';
@@ -284,24 +480,58 @@
      dice lo único que sabemos de verdad — si el chat está abierto o no—, y si
      el coach lo ha cerrado se quita el cuadro de escribir en vez de dejar uno
      que devuelve un error al pulsar Enviar. */
-  function aplicarEstadoChat(activo){
+  function aplicarEstadoChat(){
     var st=document.getElementById('coachStatus');
-    var abierto=activo!==false;
-    st.innerHTML=abierto
-      ? '<span class="live"></span> Chat activo'
-      : 'Chat desactivado por tu coach';
+    var off=document.getElementById('chatOff');
+    var grupo=esGrupo(_activa);
+    // Dos motivos distintos para no poder escribir, y conviene decir cuál es:
+    // el coach cerró el chat, o es un grupo de avisos donde solo habla él.
+    var apagado=(_chatOn===false);
+    var soloEl=!!_activa && _activa.puedo_escribir===false;
+    var abierto=!apagado && !soloEl;
+
+    if(apagado){
+      st.innerHTML='Chat desactivado por tu coach';
+      off.textContent='Tu coach ha desactivado el chat. Sigues viendo lo que te ha escrito, pero no puedes responder por aquí.';
+    } else if(soloEl){
+      st.innerHTML='Solo escribe quien creó el grupo';
+      off.textContent='En este grupo solo escribe quien lo creó. Si necesitas algo, escríbele por privado.';
+    } else if(grupo){
+      var n=_activa.participantes_total||(_activa.participants||[]).length;
+      st.innerHTML='<span class="live"></span> '+(n?n+' personas':'Grupo');
+    } else {
+      st.innerHTML='<span class="live"></span> Chat activo';
+    }
+
     document.querySelectorAll('.ch-dot').forEach(function(d){ d.style.display=abierto?'':'none'; });
     document.getElementById('composerInner').style.display=abierto?'':'none';
-    document.getElementById('chatOff').style.display=abierto?'none':'';
+    off.style.display=abierto?'none':'';
     if(!abierto) quitarAdjunto();
+
+    var inp=document.getElementById('msgInput');
+    inp.placeholder=grupo?'Escribe al grupo…':('Escribe a '+nombreConv(_activa)+'…');
   }
 
-  function applyCoach(){
-    if(!_coach) return;
-    document.getElementById('coachName').textContent=_coach.name||'Tu coach';
+  /* La cabecera dice qué conversación está abierta, no "tu coach" siempre:
+     con los grupos ya no es una sola. */
+  function pintarCabecera(){
+    var c=_activa;
+    var nom=c?nombreConv(c):((_coach&&_coach.name)||'Tu coach');
+    document.getElementById('coachName').textContent=nom;
     var av=document.getElementById('coachAvatar');
-    if(_coach.photo){ av.innerHTML='<img src="'+esc(_coach.photo)+'" alt=""><span class="ch-dot"></span>'; av.style.background='transparent'; }
-    else { av.innerHTML=esc(_coach.initials||(_coach.name||'C').trim()[0]||'C')+'<span class="ch-dot"></span>'; }
+    var grupo=esGrupo(c);
+    var o=grupo?null:(c?otroDe(c):null);
+    var foto=(o&&o.photo)||(!c&&_coach?_coach.photo:null);
+    if(grupo){
+      av.innerHTML='👥<span class="ch-dot"></span>';
+      av.style.background='var(--green-pale)'; av.style.color='var(--green)';
+    } else if(foto){
+      av.innerHTML='<img src="'+esc(foto)+'" alt=""><span class="ch-dot"></span>';
+      av.style.background='transparent';
+    } else {
+      av.style.background=''; av.style.color='';
+      av.innerHTML=esc((nom.trim()[0]||'C').toUpperCase())+'<span class="ch-dot"></span>';
+    }
   }
 
   async function loadMessages(initial){
@@ -316,9 +546,8 @@
            pantalla: entrar en el chat y oír siete pitidos seguidos por el
            historial es justo lo que no se quiere. */
         if(!initial && list.length>_lastCount && window.avisoChat){
-          var coachId=(_coach&&_coach.user_id)||null;
-          var nuevos=list.slice(_lastCount);
-          if(nuevos.some(function(m){ return coachId && m.sender_user_id===coachId; })){
+          var nuevos=list.slice(Math.max(_lastCount,0));
+          if(nuevos.some(function(m){ return !esMio(m); })){
             window.avisoChat.sonar();
           }
         }
@@ -408,6 +637,8 @@
 
   async function loadProfile(){
     try{ const r=await fetch(API+'/auth/me',{headers:headers()}); const d=await r.json(); const u=d.data||d;
+      // Sin esto no se puede saber qué mensaje de un grupo es mío.
+      if(u.user_id!=null) _yo=u.user_id;
       const name=u.name||u.email||'Cliente'; document.getElementById('sidebarName').textContent=name;
       const sav=document.getElementById('sidebarAvatar');
       if(u.photo){sav.innerHTML='<img src="'+u.photo+'" alt="">';sav.style.background='transparent';}else{sav.textContent=(name.trim()[0]||'C').toUpperCase();}
@@ -415,24 +646,37 @@
   }
 
   async function initChat(){
+    /* Se sigue pidiendo /client/chat lo primero porque es lo que CREA la
+       conversación con el coach si todavía no existe. Lo demás sale ya de la
+       lista, que es la misma para todos los roles. */
     try{
       const r=await fetch(API+'/client/chat',{headers:headers()});
       const d=await r.json();
       _convId=(d.data&&d.data.conversation_id)||null;
       _coach=(d.data&&d.data.coach)||null;
-      applyCoach();
-      aplicarEstadoChat(d.data&&d.data.chat_enabled);
-      if(!_convId){
-        document.getElementById('coachStatus').innerHTML='Sin coach asignado';
-        document.getElementById('chatInner').innerHTML='<div class="chat-empty">Todavía no tienes un coach asignado.<br>Cuando lo tengas, podrás escribirle por aquí.</div>';
-        document.getElementById('msgInput').disabled=true; document.getElementById('sendBtn').disabled=true;
-        return;
-      }
-      await loadMessages(true);
-      _poll=setInterval(function(){ loadMessages(false); }, 8000);
-    }catch(e){
-      document.getElementById('chatInner').innerHTML='<div class="chat-empty">No se pudo abrir el chat.</div>';
+      _chatOn=(d.data&&d.data.chat_enabled)!==false;
+    }catch(e){ /* sin coach asignado se sigue: puede tener grupos igualmente */ }
+
+    pintarCabecera();
+    await cargarConversaciones(true);
+
+    if(!_activa){
+      document.getElementById('coachStatus').innerHTML='Sin coach asignado';
+      document.getElementById('chatInner').innerHTML='<div class="chat-empty">Todavía no tienes un coach asignado.<br>Cuando lo tengas, podrás escribirle por aquí.</div>';
+      document.getElementById('msgInput').disabled=true; document.getElementById('sendBtn').disabled=true;
+      document.getElementById('composerInner').style.display='none';
+      return;
     }
+
+    /* Un solo sondeo para los mensajes de dentro y para la lista de fuera, y
+       parado cuando la pestaña no está a la vista: dos temporizadores sueltos
+       pidiendo cosas con el portátil cerrado es lo que ya se quitó del globito
+       de no leídos. */
+    _poll=setInterval(function(){
+      if(document.hidden) return;
+      loadMessages(false);
+      cargarConversaciones(false);
+    }, 9000);
   }
 
 
@@ -459,7 +703,9 @@ function alternarSonido(){
 }
 pintarBotonSonido();
 
-  loadProfile(); initChat();
+  /* El perfil ANTES del chat: initChat necesita saber quién soy para pintar
+     bien los mensajes de un grupo. */
+  (async function(){ await loadProfile(); await initChat(); })();
   window.addEventListener('beforeunload', function(){ if(_poll) clearInterval(_poll); });
 </script>
 <script src="js/chat-badge.js"></script>

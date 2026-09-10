@@ -263,7 +263,7 @@ const PELADO = {
   );
   ck(
     "y abre por Resumen",
-    (await p.textContent(".ej-tab.sel")) === "Resumen",
+    (await p.textContent(".ej-tab.sel")).trim() === "Resumen",
     await p.textContent(".ej-tab.sel"),
   );
 
@@ -401,7 +401,7 @@ const PELADO = {
   await p.waitForTimeout(200);
   ck(
     "ABRIR OTRO EJERCICIO VUELVE A RESUMEN",
-    (await p.textContent(".ej-tab.sel")) === "Resumen",
+    (await p.textContent(".ej-tab.sel")).trim() === "Resumen",
     await p.textContent(".ej-tab.sel"),
   );
 
