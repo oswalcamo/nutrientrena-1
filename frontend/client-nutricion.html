@@ -55,6 +55,71 @@
     .btn-list{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:10px;border:1px solid #A7F3D0;background:#ECFDF5;color:var(--green);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap;}
     .btn-list:hover{background:#D1FAE5;}
 
+    /* ── Las dos pestañas ─────────────────────────────────────────────────
+       "Mi plan" es lo de siempre. "Recetas" es el catálogo que suben el coach
+       y el centro, que hasta ahora el cliente no podía ver por ningún lado
+       aunque estuviera hecho para él. */
+    .nt-tabs{display:flex;gap:6px;background:#EFF1F5;border-radius:12px;padding:4px;margin-bottom:16px;}
+    .nt-tab{flex:1;padding:9px 12px;border:none;border-radius:9px;background:none;color:#6B7280;
+      font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;}
+    .nt-tab.on{background:#fff;color:#111827;box-shadow:0 1px 3px rgba(16,24,40,.08);}
+
+    /* ── Consumido hoy ────────────────────────────────────────────────────
+       Va a 0 o al total, no a un punto intermedio: la pantalla no tiene
+       ninguna casilla por comida, solo el botón del final. Fingir un
+       porcentaje sería inventarse un dato que nadie ha dado. */
+    .cons{margin-top:14px;}
+    .cons-fila{display:flex;align-items:baseline;justify-content:space-between;font-size:12.5px;margin-bottom:6px;}
+    .cons-fila b{color:#6B7280;font-weight:600;}
+    .cons-fila span{color:#111827;font-weight:700;}
+    .cons-barra{height:6px;border-radius:4px;background:#EEF0F3;overflow:hidden;}
+    .cons-barra i{display:block;height:100%;border-radius:4px;background:var(--green);transition:width .3s;}
+
+    .btn-cambiar{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:14px;
+      padding:11px 14px;border:1px solid #E5E7EB;border-radius:11px;background:#fff;color:#374151;
+      font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;}
+    .btn-cambiar:hover{border-color:var(--indigo);color:var(--indigo);}
+
+    /* El 🔄 de cada comida: lleva a Recetas ya filtrado por esa comida. */
+    .meal-swap{width:32px;height:32px;border-radius:9px;border:none;background:#EEF2FF;color:var(--indigo);
+      display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;padding:0;}
+    .meal-swap:hover{background:#E0E7FF;}
+
+    .btn-dia{display:block;width:100%;margin:6px 0 4px;padding:14px;border-radius:13px;
+      border:1px solid #E5E7EB;background:#fff;color:#111827;font-family:inherit;
+      font-size:14px;font-weight:700;cursor:pointer;}
+    .btn-dia:hover{border-color:var(--indigo);color:var(--indigo);}
+    .btn-dia.hecho{background:#ECFDF5;border-color:#A7F3D0;color:var(--green);}
+    .btn-dia:disabled{opacity:.55;cursor:default;}
+    .btn-dia:disabled:hover{border-color:#E5E7EB;color:#111827;}
+
+    /* ── El catálogo de recetas ───────────────────────────────────────────*/
+    .rc-buscar{position:relative;margin-bottom:12px;}
+    .rc-buscar svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#9CA3AF;}
+    .rc-buscar input{width:100%;padding:11px 14px 11px 38px;border:1px solid #E5E7EB;border-radius:11px;
+      font-family:inherit;font-size:13.5px;color:#111;outline:none;background:#fff;}
+    .rc-buscar input:focus{border-color:var(--indigo);}
+    .rc-chips{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px;margin-bottom:14px;}
+    .rc-chip{padding:7px 14px;border-radius:20px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;
+      font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+    .rc-chip.on{background:var(--indigo);border-color:var(--indigo);color:#fff;}
+    .rc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;}
+    .rc-card{background:#fff;border:1px solid #E5E7EB;border-radius:14px;overflow:hidden;
+      box-shadow:0 1px 2px rgba(16,24,40,.04);display:flex;flex-direction:column;}
+    .rc-foto{position:relative;aspect-ratio:4/3;background:#F3F4F6;overflow:hidden;}
+    .rc-foto img{width:100%;height:100%;object-fit:cover;display:block;}
+    /* Sin foto no se deja un hueco gris: se pone la inicial, que al menos
+       distingue una tarjeta de otra de un vistazo. */
+    .rc-foto .sinfoto{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+      font-size:26px;font-weight:800;color:#C7CBD3;background:#F3F4F6;}
+    .rc-encaja{position:absolute;left:8px;bottom:8px;display:inline-flex;align-items:center;gap:4px;
+      padding:4px 9px;border-radius:20px;background:var(--green);color:#fff;font-size:10.5px;font-weight:700;}
+    .rc-cuerpo{padding:10px 11px 12px;}
+    .rc-nm{font-size:13px;font-weight:700;color:#111827;line-height:1.3;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+    .rc-meta{display:flex;gap:10px;margin-top:6px;font-size:11px;color:#9CA3AF;font-weight:600;}
+    .rc-meta span{display:inline-flex;align-items:center;gap:3px;}
+
     .weekbar{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:18px;}
     .wday{flex:1;min-width:44px;background:#fff;border:1px solid #E5E7EB;border-radius:14px;padding:9px 4px;text-align:center;cursor:pointer;transition:.15s;}
     .wday:hover{border-color:#C7D2FE;}
@@ -206,10 +271,26 @@
         </button>
       </div>
 
-      <div class="plan-aviso" id="planAviso" style="display:none;"></div>
+      <div class="nt-tabs">
+        <button class="nt-tab on" id="tabPlan" onclick="verPestana('plan')">Mi plan</button>
+        <button class="nt-tab" id="tabRecetas" onclick="abrirRecetas()">Recetas</button>
+      </div>
 
-      <div class="weekbar" id="weekbar" style="display:none;"></div>
-      <div id="daybox"><div class="empty" id="loadingBox">Cargando tu plan nutricional…</div></div>
+      <div id="panelPlan">
+        <div class="plan-aviso" id="planAviso" style="display:none;"></div>
+
+        <div class="weekbar" id="weekbar" style="display:none;"></div>
+        <div id="daybox"><div class="empty" id="loadingBox">Cargando tu plan nutricional…</div></div>
+      </div>
+
+      <div id="panelRecetas" style="display:none;">
+        <div class="rc-buscar">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="rcBuscar" placeholder="Buscar receta…" autocomplete="off" oninput="rcBuscarCambia(this.value)"/>
+        </div>
+        <div class="rc-chips" id="rcChips"></div>
+        <div class="rc-grid" id="rcGrid"><div class="empty">Cargando recetas…</div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -254,6 +335,8 @@
   function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open'); }
   let _tt; function soon(){ const t=document.getElementById('toast'); t.textContent='Disponible próximamente'; t.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
+  var ICO_SWAP = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+
   function mealIcon(name){
     var n=(name||'').toLowerCase();
     var COFFEE='<svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M17 8h1a4 4 0 1 1 0 8h-1"/><path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/><line x1="6" y1="2" x2="6" y2="4"/><line x1="10" y1="2" x2="10" y2="4"/><line x1="14" y1="2" x2="14" y2="4"/></svg>';
@@ -287,6 +370,15 @@
         +'<div class="macro c"><div class="macro-v">'+g(d.carbs)+'</div><div class="macro-l">Carbohidratos</div></div>'
         +'<div class="macro g"><div class="macro-v">'+g(d.fats)+'</div><div class="macro-l">Grasa</div></div>'
         +'</div>';
+      /* Consumido hoy. Va a 0 o al total: la pantalla no tiene casilla por
+         comida, así que un punto intermedio sería un dato inventado. */
+      var tot = (d.kcal!=null) ? Math.round(d.kcal) : null;
+      var comido = d.completed ? (tot||0) : 0;
+      html+='<div class="cons"><div class="cons-fila"><b>Consumido hoy</b>'
+        +'<span>'+comido+(tot!=null?' / '+tot:'')+' kcal</span></div>'
+        +'<div class="cons-barra"><i style="width:'+(tot?Math.min(100,Math.round(comido*100/tot)):0)+'%"></i></div></div>';
+      html+='<button class="btn-cambiar" onclick="cambiarComida(null)">'
+        + ICO_SWAP + 'Ver recetas para cambiar una comida</button>';
     } else {
       html+='<div class="day-note">No hay menú asignado para este día.</div>';
     }
@@ -304,10 +396,26 @@
            cliente busca —qué come— y el nombre solo le dice cuándo. */
         +'<div class="meal-info"><div class="meal-nm">'+esc(m.name||'Comida')+'</div>'
         +(m.subtitle?'<div class="meal-que">'+esc(m.subtitle)+'</div>':'')
-        +'<div class="meal-sub">'+esc(sub||'')+'</div></div>'+chev+'</div>'
+        +'<div class="meal-sub">'+esc(sub||'')+'</div></div>'
+        /* Va FUERA del onclick de la cabecera: si estuviera dentro, tocar el
+           🔄 abriría la comida además de saltar a las recetas. */
+        +'<button class="meal-swap" title="Cambiar esta comida" aria-label="Cambiar esta comida"'
+        +' onclick="event.stopPropagation();cambiarComida('+JSON.stringify(m.name||'').replace(/"/g,'&quot;')+')">'
+        + ICO_SWAP + '</button>'
+        +chev+'</div>'
         +'<div class="meal-foods">'+foodsHtml+'</div></div>';
     });
     if(d.has_diet && !(d.meals||[]).length){ html+='<div class="empty">Este día no tiene comidas cargadas.</div>'; }
+    /* Solo en días que ya han pasado o el de hoy: marcar el jueves como
+       comido en lunes no es un dato, es un descuido. */
+    if(d.has_diet){
+      var futuro = d.date && d.date > (new Date()).toISOString().slice(0,10);
+      html+='<button class="btn-dia'+(d.completed?' hecho':'')+'" id="btnDia"'
+        + (futuro?' disabled title="Ese día todavía no ha llegado"':'')
+        + ' onclick="marcarDia()">'
+        + (d.completed ? '✓ Día completado' : 'Marcar día como completado')
+        + '</button>';
+    }
     box.innerHTML=html;
   }
   function fmtQty(f){
@@ -317,6 +425,158 @@
     if(['g','ml','kg','l','mg'].indexOf(u)>=0) return q+u;
     return (q!==''? q+' ' : '')+u;
   }
+  /* ── Las dos pestañas ──────────────────────────────────────────────────
+     "Ver recetas para cambiar una comida" y el 🔄 de cada comida llevan aquí,
+     no a otra página: cambiar una comida es una decisión que se toma mirando
+     el plan, y salir de la pantalla obliga a acordarse de a qué se volvía. */
+  var _pestana = 'plan';
+
+  /* Cambiar de pestaña y nada más. Quién decide el filtro es quien llama:
+     mezclar las dos cosas aquí fue lo que hizo que volver a Recetas repintara
+     la lista vieja con el filtro nuevo puesto en las pastillas. */
+  function verPestana(cual){
+    _pestana = cual;
+    document.getElementById('tabPlan').classList.toggle('on', cual === 'plan');
+    document.getElementById('tabRecetas').classList.toggle('on', cual === 'recetas');
+    document.getElementById('panelPlan').style.display = cual === 'plan' ? '' : 'none';
+    document.getElementById('panelRecetas').style.display = cual === 'recetas' ? '' : 'none';
+    // La lista de la compra es del plan: con las recetas delante no pinta nada.
+    document.getElementById('btnLista').style.display = cual === 'plan' ? '' : 'none';
+    var c = document.querySelector('.content'); if (c) c.scrollTop = 0;
+  }
+
+  /* La pestaña, a secas: el catálogo entero. Se limpia lo que hubiera puesto
+     un "cambiar esta comida" anterior, porque "encaja con cena" solo responde
+     a una pregunta que aquí no se ha hecho. */
+  function abrirRecetas(){
+    _rcQueCambio = null;
+    _rcTipo = null;
+    verPestana('recetas');
+    cargarRecetas();
+  }
+
+  /* Cambiar ESTA comida: se salta a Recetas con el filtro puesto en el tipo de
+     comida que se quiere cambiar, y las que encajan salen marcadas. */
+  function cambiarComida(nombreComida){
+    _rcQueCambio = nombreComida || null;
+    _rcTipo = _tipoDeComida(nombreComida);
+    document.getElementById('rcBuscar').value = '';
+    _rcBusca = '';
+    verPestana('recetas');
+    cargarRecetas();
+  }
+
+  /* El nombre de la comida del plan ("Media mañana") y el tipo con el que el
+     coach etiqueta la receta no siempre se escriben igual. Se compara sin
+     acentos ni mayúsculas, y si no hay pareja no se filtra: enseñar el
+     catálogo entero es mejor que enseñarlo vacío. */
+  function _sinAcentos(t){
+    return String(t||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim();
+  }
+  function _tipoDeComida(nombre){
+    var n = _sinAcentos(nombre);
+    if (!n) return null;
+    for (var i=0;i<_rcTipos.length;i++){
+      if (_sinAcentos(_rcTipos[i]) === n) return _rcTipos[i];
+    }
+    return null;
+  }
+
+  // ── El catálogo ─────────────────────────────────────────────────────────
+  var _rcItems = [], _rcTipos = [], _rcTipo = null, _rcBusca = '', _rcQueCambio = null, _rcTimer = null;
+
+  function rcBuscarCambia(v){
+    _rcBusca = v || '';
+    // Se espera a que pare de escribir: una petición por tecla son diez
+    // peticiones para buscar "tortilla".
+    clearTimeout(_rcTimer);
+    _rcTimer = setTimeout(cargarRecetas, 300);
+  }
+
+  function rcFiltrar(tipo){
+    _rcTipo = (_rcTipo === tipo) ? null : tipo;
+    cargarRecetas();
+  }
+
+  async function cargarRecetas(){
+    var q = [];
+    if (_rcBusca.trim()) q.push('search=' + encodeURIComponent(_rcBusca.trim()));
+    if (_rcTipo) q.push('meal_type=' + encodeURIComponent(_rcTipo));
+    try{
+      const r = await fetch(API + '/client/recipes' + (q.length ? '?' + q.join('&') : ''), { headers: headers() });
+      const d = await r.json();
+      var data = (d && d.data) || {};
+      _rcItems = data.items || [];
+      // Las pastillas se quedan con TODOS los tipos, no con los del resultado
+      // filtrado: si no, al filtrar por "Cena" desaparecen las demás y no hay
+      // forma de volver.
+      if ((data.meal_types || []).length) _rcTipos = data.meal_types;
+      document.getElementById('tabRecetas').textContent = 'Recetas (' + (data.total || 0) + ')';
+      rcPintar();
+    }catch(e){
+      document.getElementById('rcGrid').innerHTML =
+        '<div class="empty">No se pudieron cargar las recetas.</div>';
+    }
+  }
+
+  function rcPintar(){
+    var chips = document.getElementById('rcChips');
+    chips.innerHTML = '<button class="rc-chip' + (_rcTipo ? '' : ' on') + '"'
+      + ' onclick="rcFiltrar(null)">Todas</button>'
+      + _rcTipos.map(function(t){
+          return '<button class="rc-chip' + (_rcTipo === t ? ' on' : '') + '"'
+            + ' data-tipo="' + esc(t) + '" onclick="rcFiltrar(' + JSON.stringify(t).replace(/"/g,'&quot;') + ')">'
+            + esc(t) + '</button>';
+        }).join('');
+
+    var grid = document.getElementById('rcGrid');
+    if (!_rcItems.length){
+      grid.innerHTML = '<div class="empty">'
+        + (_rcBusca.trim() ? 'Ninguna receta se llama así.'
+                           : 'Tu coach todavía no ha subido recetas.') + '</div>';
+      return;
+    }
+    grid.innerHTML = _rcItems.map(function(r){
+      var foto = r.image
+        ? '<img src="' + esc(r.image) + '" alt="' + esc(r.name || '') + '" loading="lazy">'
+        : '<div class="sinfoto">' + esc((r.name || '?').trim()[0] || '?') + '</div>';
+      /* La marca verde solo cuando se viene de "cambiar una comida": fuera de
+         ese momento, "encaja con cena" no responde a ninguna pregunta. */
+      var encaja = (_rcQueCambio && r.meal_type && _sinAcentos(r.meal_type) === _sinAcentos(_rcQueCambio))
+        ? '<span class="rc-encaja">✓ Encaja con ' + esc(String(_rcQueCambio).toLowerCase()) + '</span>' : '';
+      var meta = [];
+      if (r.prep_time != null) meta.push('<span>⏱ ' + esc(r.prep_time) + ' min</span>');
+      if (r.kcal != null) meta.push('<span>🔥 ' + esc(r.kcal) + ' kcal</span>');
+      return '<div class="rc-card" data-receta="' + esc(r.id) + '">'
+        + '<div class="rc-foto">' + foto + encaja + '</div>'
+        + '<div class="rc-cuerpo"><div class="rc-nm">' + esc(r.name || 'Receta') + '</div>'
+        + '<div class="rc-meta">' + meta.join('') + '</div></div></div>';
+    }).join('');
+  }
+
+  // ── Marcar el día ───────────────────────────────────────────────────────
+  async function marcarDia(){
+    var d = _days[_sel];
+    if (!d || !d.date) return;
+    var btn = document.getElementById('btnDia');
+    if (btn) btn.disabled = true;
+    var quiero = !d.completed;
+    try{
+      const r = await fetch(API + '/client/nutrition/day/' + encodeURIComponent(d.date) + '/completado',
+        { method:'POST', headers: headers(), body: JSON.stringify({ completado: quiero }) });
+      if (!r.ok){
+        var je = await r.json().catch(function(){ return {}; });
+        throw new Error(je.message || je.detail || '');
+      }
+      d.completed = quiero;
+      renderWeek(); renderDay();
+      soon2(quiero ? 'Día marcado como completado' : 'Día desmarcado');
+    }catch(e){
+      soon2(e.message || 'No se pudo guardar', true);
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function toggleMeal(mi){ var el=document.getElementById('mealc-'+mi); if(el) el.classList.toggle('open'); }
   function selectDay(i){ _sel=i; renderWeek(); renderDay();
     // Con la lista abierta, cambiar de día tiene que cambiar la lista:
@@ -511,11 +771,16 @@
       return d.getDate()+'/'+(d.getMonth()+1); }catch(e){ return ''; }
   }
 
-  function soon2(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2200); }
+  function soon2(msg, err){ const t=document.getElementById('toast'); t.textContent=msg;
+    t.className='toast show'+(err?' err':''); clearTimeout(_tt);
+    _tt=setTimeout(()=>t.classList.remove('show'),2200); }
 
   document.addEventListener('keydown',function(e){ if(e.key==='Escape') cerrarLista(); });
 
-  loadProfile(); loadNutrition();
+  /* Las recetas se piden al entrar aunque la pestaña esté cerrada: es lo que
+     le pone el número al rótulo ("Recetas (12)"), y sin él la pestaña no dice
+     si hay algo detrás o está vacía. */
+  loadProfile(); loadNutrition(); cargarRecetas();
 </script>
 <script src="js/chat-badge.js"></script>
 <script>
