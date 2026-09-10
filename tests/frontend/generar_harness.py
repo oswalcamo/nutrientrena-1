@@ -8,6 +8,28 @@ import os
 import re
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def pos_funcion(texto, nombre, desde=0):
+    """Dónde empieza la función `nombre`, sin depender de cómo esté escrita.
+
+    Los anclajes de este fichero son texto EXACTO a propósito: si alguien mueve
+    una función fuera del trozo que se extrae, esto revienta aquí y no en
+    producción. Eso hay que conservarlo. Lo que no aporta nada es que reviente
+    porque la página se haya reindentado: `  function f(e){` y
+    `      function f(e) {` son la misma función, y una pasada del formateador
+    dejaba el banco de pruebas sin generar y toda la suite de frontend en rojo
+    sin que nadie hubiera tocado el código.
+
+    Sigue fallando —con el nombre puesto— si la función ya no está.
+    """
+    m = re.search(r'^[ 	]*(?:async[ 	]+)?function[ 	]+%s[ 	]*\(' % re.escape(nombre),
+                  texto[desde:], re.M)
+    if not m:
+        raise ValueError(
+            "No se encuentra la función %s(). Si se ha movido o renombrado, "
+            "hay que actualizar el trozo que extrae este generador." % nombre)
+    return desde + m.start()
 src = open(os.path.join(RAIZ, 'frontend', 'rutinas.html')).read()
 MODULO = open(os.path.join(RAIZ, 'frontend', 'js', 'routine-builder.js')).read()
 MODULO_CSS = open(os.path.join(RAIZ, 'frontend', 'css', 'routine-builder.css')).read()
@@ -90,8 +112,26 @@ print('harness generado en', destino3)
 
 
 # ── Harness del constructor embebido en la ficha del cliente ───────────────
+def pos_elemento(html, id_):
+    """Dónde abre la etiqueta que lleva ese id, esté escrita como esté.
+
+    Mismo motivo que `pos_funcion`: una pasada del formateador parte los
+    atributos en varias líneas —el `<div`, el `class=` y el `id=` acaban cada
+    uno en la suya— y un anclaje de texto exacto deja de encontrar un elemento
+    que sigue estando ahí.
+    """
+    comillas = '[\'"]'
+    m = re.search('id\\s*=\\s*%s%s%s' % (comillas, re.escape(id_), comillas), html)
+    if not m:
+        raise ValueError(
+            "No se encuentra el elemento con id=%s. Si se ha quitado o "
+            "renombrado, hay que actualizar este generador." % id_)
+    return html.rindex('<', 0, m.start())
+
+
 def _bloque(html, marca):
-    i = html.index(marca); seg = html[i:]; prof = 0; j = 0
+    i = html.index(marca) if isinstance(marca, str) else marca
+    seg = html[i:]; prof = 0; j = 0
     while j < len(seg):
         if seg.startswith('<div', j): prof += 1
         elif seg.startswith('</div>', j):
@@ -361,10 +401,10 @@ print('harness generado en', destino11)
 # el RPE de siempre aunque al cliente se le pregunte por repeticiones.
 ent = open(os.path.join(RAIZ, 'frontend', 'client-entrena.html')).read()
 csse2 = '\n'.join(re.findall(r'<style>(.*?)</style>', ent, re.S))
-a = ent.index('  function prevText(e, si){')
-b = ent.index('  function wsToggle(ei, si){')
+a = pos_funcion(ent, 'prevText')
+b = pos_funcion(ent, 'wsToggle', a)
 codigo_ws = ent[a:b]
-hoja_html = _bloque(ent, '<div class="rpe-back" id="rpeBack"')
+hoja_html = _bloque(ent, pos_elemento(ent, 'rpeBack'))
 
 rpe = """<!doctype html><html><head><meta charset="utf-8"><style>%s</style></head><body>
 <div id="wsInner"></div>
