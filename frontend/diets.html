@@ -2224,7 +2224,7 @@ function _pm2RowHTML(mid, row) {
   var m = _rowMacros(row);
   var gi = _foodGroupIcon(row.group_food_id, 18);
   var grp = _groupName(row.group_food_id);
-  var unit = row.unit === 'unidad' ? 'ud' : (row.unit || 'g');
+  var unit = row.unit || 'g';
   var qtyVal = parseFloat(row.quantity);
   return '<tr id="frow-' + rid + '">'
     + '<td class="l"><div class="pm2-food-cell"><div class="pm2-food-ico" style="background:' + gi.bg + ';">' + gi.svg + '</div>'
@@ -2517,7 +2517,7 @@ function _foodRowInner(mid, row) {
   var p = Math.round(_escFila(row.proteins, row, qtyG)*10)/10;
   var c = Math.round(_escFila(row.carbohydrates, row, qtyG)*10)/10;
   var f = Math.round(_escFila(row.fats, row, qtyG)*10)/10;
-  var qtyTxt = qty ? (qty % 1 === 0 ? qty : qty.toFixed(1)) + (row.unit === 'unidad' ? ' ud' : (row.unit || 'g')) : '—';
+  var qtyTxt = qty ? (qty % 1 === 0 ? qty : qty.toFixed(1)) + window.macrosAlimento.sufijoUnidad(row.unit) : '—';
   var desc = qtyTxt + ' · ' + k + ' kcal · P' + p + 'g · C' + c + 'g · G' + f + 'g';
   var gi = _foodGroupIcon(row.group_food_id, 18);
   return '<div class="msv2-food-ico" style="background:' + gi.bg + ';">' + gi.svg + '</div>'
@@ -2620,17 +2620,21 @@ function getUnitMult(unit) {
   return (unit === 'kg' || unit === 'l') ? 1000 : (unit === 'cucharada' ? 15 : (unit === 'taza' ? 240 : 1));
 }
 
+/* La unidad de un alimento. Lo decide el módulo compartido y no esta página.
+
+   Aquí había una séptima forma de deducirlo, y encima con otro vocabulario:
+   llamaba «unidad» a lo que el resto de la aplicación llama «ud». El catálogo
+   guarda `ud`, `u` y `tz` —ninguno la palabra completa—, así que la
+   comprobación `unidad === 'unidad'` era falsa SIEMPRE: un Big Mac arrancaba
+   en 1 y el «+» lo dejaba en 11, 21, 31, con el paso de los gramos, y los
+   atajos ofrecían 50ud, 100ud, 150ud.
+
+   `unidadDe` tiene la tabla de equivalencias en un solo sitio: `gr` es `g`,
+   y `ud`, `u`, `uds` y `tz` son todos `ud`. */
 function _unitFromAliment(a) {
-  if (!a) return 'g';
-  var qt = a.quantity_type && (a.quantity_type.description || a.quantity_type.name);
-  if (qt) {
-    if (qt === 'ml') return 'ml';
-    if (qt === 'ud') return 'unidad';
-    if (qt === 'oz') return 'oz';
-    return 'g';
-  }
-  return a.quantity_unit || 'g';
+  return window.macrosAlimento.unidadDe(a);
 }
+
 
 function _showQtyBadge(rid, qty, unit) {
   var badge = document.getElementById('fqty-badge-' + rid);
@@ -3050,7 +3054,7 @@ function fsmRenderList(items) {
     _fsmCache[a.id] = a;
     var qty = a.quantity != null ? a.quantity : 100;
     var unit = _unitFromAliment(a);
-    var unitTxt = unit === 'unidad' ? ' ud' : unit;
+    var unitTxt = window.macrosAlimento.sufijoUnidad(unit);
     var k = Math.round(a.calories || 0);
     var p = Math.round((a.proteins || 0) * 10) / 10;
     var c = Math.round((a.carbohydrates || 0) * 10) / 10;
@@ -3123,7 +3127,7 @@ document.addEventListener('keydown', function(e) {
 var _fsmSelId = null, _fsmQty = 0;
 
 function _fsmPresetsFor(unit) {
-  if (unit === 'unidad') return [1, 2, 3, 4, 5];
+  if (unit === 'ud') return [1, 2, 3, 4, 5];
   if (unit === 'kg' || unit === 'l') return [0.25, 0.5, 1, 1.5, 2];
   if (unit === 'oz') return [1, 2, 4, 6, 8];
   return [50, 100, 150, 200, 250]; // g / ml
@@ -3147,7 +3151,7 @@ function fsmSelect(alimentId) {
   else chip.style.display = 'none';
 
   document.getElementById('fsmQtyInput').value = _fsmQty;
-  document.getElementById('fsmQtyUnit').textContent = unit === 'unidad' ? 'ud' : unit;
+  document.getElementById('fsmQtyUnit').textContent = unit;
   _fsmRenderPresets(unit);
 
   var meal = _meals.find(function(m){ return m.id == _fsmMid; });
@@ -3160,7 +3164,7 @@ function fsmSelect(alimentId) {
 
 function _fsmRenderPresets(unit) {
   var el = document.getElementById('fsmQtyPresets');
-  var unitTxt = unit === 'unidad' ? ' ud' : unit;
+  var unitTxt = window.macrosAlimento.sufijoUnidad(unit);
   el.innerHTML = _fsmPresetsFor(unit).map(function(v) {
     return '<button class="fsm-qty-preset' + (v === _fsmQty ? ' sel' : '') + '" onclick="fsmSetQty(' + v + ')">' + v + unitTxt + '</button>';
   }).join('');
@@ -3178,7 +3182,7 @@ function fsmQtyStep(dir) {
   var a = _fsmCache[_fsmSelId];
   if (!a) return;
   var unit = _unitFromAliment(a);
-  var step = unit === 'unidad' ? 1 : ((unit === 'kg' || unit === 'l') ? 0.25 : 10);
+  var step = unit === 'ud' ? 1 : ((unit === 'kg' || unit === 'l') ? 0.25 : 10);
   var v = Math.max(0, Math.round(((_fsmQty || 0) + dir * step) * 100) / 100);
   fsmSetQty(v);
 }

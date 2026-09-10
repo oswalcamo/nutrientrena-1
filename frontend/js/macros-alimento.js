@@ -17,7 +17,7 @@
    arreglarlas todas a la vez. Es el mismo criterio que `app/core/macros.py`,
    que hace exactamente esto en el servidor. */
 (function (global) {
-  'use strict';
+  "use strict";
 
   /* La cantidad a la que se refieren los macros del alimento. Sin dato, 100:
      es lo que la aplicación ha hecho siempre y lo que vale para la enorme
@@ -26,15 +26,16 @@
   function porcionDe(al) {
     var q = al && (al.quantity != null ? al.quantity : al.cantidad);
     q = parseFloat(q);
-    return (isFinite(q) && q > 0) ? q : 100;
+    return isFinite(q) && q > 0 ? q : 100;
   }
 
   /* Lo que aportan `cantidad` unidades de este alimento. `valor` es el macro
      tal como está guardado (kcal, proteínas…), referido a su porción. */
   function escalar(valor, al, cantidad) {
-    var v = parseFloat(valor), c = parseFloat(cantidad);
+    var v = parseFloat(valor),
+      c = parseFloat(cantidad);
     if (!isFinite(v) || !isFinite(c)) return 0;
-    return v / porcionDe(al) * c;
+    return (v / porcionDe(al)) * c;
   }
 
   /* Diccionario de unidades. La misma unidad viene escrita de varias formas
@@ -42,11 +43,24 @@
      cliente traían `gr`, y los alimentos antiguos la llevan en la relación
      `quantity_type` con la etiqueta larga ("Unidad"). Son la misma cosa. */
   var ALIAS = {
-    g: 'g', gr: 'g', gramo: 'g', gramos: 'g',
-    ud: 'ud', u: 'ud', uds: 'ud', unidad: 'ud', unidades: 'ud',
-    tz: 'ud', taza: 'ud',
-    ml: 'ml', mililitro: 'ml', mililitros: 'ml',
-    l: 'l', litro: 'l', kg: 'kg', oz: 'oz'
+    g: "g",
+    gr: "g",
+    gramo: "g",
+    gramos: "g",
+    ud: "ud",
+    u: "ud",
+    uds: "ud",
+    unidad: "ud",
+    unidades: "ud",
+    tz: "ud",
+    taza: "ud",
+    ml: "ml",
+    mililitro: "ml",
+    mililitros: "ml",
+    l: "l",
+    litro: "l",
+    kg: "kg",
+    oz: "oz",
   };
 
   /* La unidad de un alimento, para ENSEÑARLA.
@@ -61,14 +75,30 @@
      Se mira primero `quantity_type`, que es donde la tienen los alimentos
      antiguos, y luego `quantity_unit`, que es donde la guarda el catálogo. */
   function unidadDe(al) {
-    if (!al) return 'g';
-    var qt = al.quantity_type && (al.quantity_type.description || al.quantity_type.name);
-    var u = String(qt || al.quantity_unit || '').trim().toLowerCase();
-    if (!u) return 'g';
+    if (!al) return "g";
+    var qt =
+      al.quantity_type &&
+      (al.quantity_type.description || al.quantity_type.name);
+    var u = String(qt || al.quantity_unit || "")
+      .trim()
+      .toLowerCase();
+    if (!u) return "g";
     return ALIAS[u] || u;
   }
 
+  /* Cómo se pega la unidad a una cifra: «200g» va junto y «2 ud» separado,
+     que es como se lee en castellano. Vive aquí, al lado de `unidadDe`,
+     porque es la otra mitad de lo mismo: quien sabe qué unidad es, sabe cómo
+     escribirla. */
+  function sufijoUnidad(unit) {
+    unit = unit || "g";
+    return unit === "ud" ? " ud" : unit;
+  }
+
   global.macrosAlimento = {
-    porcionDe: porcionDe, escalar: escalar, unidadDe: unidadDe
+    porcionDe: porcionDe,
+    escalar: escalar,
+    unidadDe: unidadDe,
+    sufijoUnidad: sufijoUnidad,
   };
 })(window);

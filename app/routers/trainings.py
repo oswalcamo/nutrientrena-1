@@ -283,9 +283,21 @@ def delete(
     motivo = _bloqueado_para_editar(obj, org, current_user, db)
     if motivo:
         return send_error(motivo, code=403)
-    # Detach references so FKs don't block the delete (routine history is kept)
+    # Hay TRES tablas que apuntan a `trainings.id` y hay que soltarlas todas
+    # antes de borrar. Faltaba la tercera —el historial de lo que la gente ha
+    # entrenado— y la clave foránea bloqueaba el DELETE: el ejercicio que nadie
+    # había hecho nunca se borraba bien y el que sí, no, que es justo al revés
+    # de lo que uno esperaría. El coach solo veía «Error al eliminar».
+    #
+    # Se sueltan, no se borran: `workout_session_exercises` guarda el nombre y
+    # el grupo muscular como copia precisamente para esto. Lo que una persona
+    # hizo un martes sigue siendo verdad aunque su coach retire el ejercicio
+    # del catálogo, y no se recupera de ningún sitio.
     from app.models.routine import RoutineDayDetail
+    from app.models.session_log import WorkoutSessionExercise
     db.query(RoutineDayDetail).filter(RoutineDayDetail.training_id == id).update({"training_id": None})
+    db.query(WorkoutSessionExercise).filter(
+        WorkoutSessionExercise.training_id == id).update({"training_id": None})
     db.query(TrainingClient).filter(TrainingClient.training_id == id).delete()
     db.delete(obj)
     db.commit()
