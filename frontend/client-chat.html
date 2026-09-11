@@ -17,88 +17,88 @@
     *{margin:0;padding:0;box-sizing:border-box;}
     :root{--indigo:#4F46E5;--indigo-dark:#4338CA;--indigo-pale:#EEF2FF;--green:#059669;--green-pale:#D1FAE5;--amber:#F59E0B;--red:#DC2626;--gray-bg:#F8FAFC;--sidebar-w:240px;}
     body{font-family:'Space Grotesk','Segoe UI',system-ui,sans-serif;background:var(--gray-bg);display:flex;height:100vh;height:100dvh;overflow:hidden;}
-    .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:#fff;border-right:1px solid #E5E7EB;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow-y:auto;}
-    .sidebar-logo{display:flex;align-items:center;gap:11px;padding:18px 18px 16px;border-bottom:1px solid #EBEBEB;}
+    .sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--sup, #fff);border-right:1px solid var(--linea, #E5E7EB);display:flex;flex-direction:column;height:100vh;height:100dvh;overflow-y:auto;}
+    .sidebar-logo{display:flex;align-items:center;gap:11px;padding:18px 18px 16px;border-bottom:1px solid var(--linea, #EBEBEB);}
     .sl-mark{width:40px;height:40px;border-radius:9px;background:url('logo.webp') no-repeat 50% 41%;background-size:210px;flex-shrink:0;}
     .sl-txt{display:flex;flex-direction:column;line-height:1.15;}
     .sl-txt b{font-size:17px;font-weight:800;letter-spacing:.3px;}
-    .sl-txt b .n1{color:var(--indigo);}.sl-txt b .n2{color:var(--green);}
-    .sl-txt small{color:#6B7280;font-size:11px;margin-top:2px;}
+    .sl-txt b .n1{color:var(--indigo-txt);}.sl-txt b .n2{color:var(--green-txt);}
+    .sl-txt small{color:var(--txt-3, #6B7280);font-size:11px;margin-top:2px;}
     .sidebar-nav{flex:1;padding:12px 0;}
-    .nav-section{padding:12px 20px 4px;font-size:10px;color:#9CA3AF;text-transform:uppercase;letter-spacing:1px;font-weight:700;}
-    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:#374151;cursor:pointer;font-size:14px;transition:all .15s;border-left:3px solid transparent;text-decoration:none;}
-    .nav-item:hover{background:#F8FAFC;color:var(--indigo);}
-    .nav-item.active{background:#EEF2FF;color:var(--indigo);border-left-color:var(--indigo);font-weight:600;}
+    .nav-section{padding:12px 20px 4px;font-size:10px;color:var(--txt-4, #9CA3AF);text-transform:uppercase;letter-spacing:1px;font-weight:700;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:10px 20px;color:var(--txt-2, #374151);cursor:pointer;font-size:14px;transition:all .15s;border-left:3px solid transparent;text-decoration:none;}
+    .nav-item:hover{background:var(--fondo-app, #F8FAFC);color:var(--indigo-txt);}
+    .nav-item.active{background:var(--ind-tenue, #EEF2FF);color:var(--indigo-txt);border-left-color:var(--indigo-txt);font-weight:600;}
     .nav-item svg{flex-shrink:0;opacity:.75;}
     .nav-item.active svg,.nav-item:hover svg{opacity:1;}
     .nav-item.disabled{opacity:.6;cursor:default;}
-    .nav-item.disabled:hover{background:none;color:#374151;}
-    .nav-soon-tag{margin-left:auto;font-size:9px;font-weight:700;color:#9CA3AF;background:#F3F4F6;padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
-    .sidebar-user{padding:14px 20px;border-top:1px solid #F3F4F6;display:flex;align-items:center;gap:10px;}
+    .nav-item.disabled:hover{background:none;color:var(--txt-2, #374151);}
+    .nav-soon-tag{margin-left:auto;font-size:9px;font-weight:700;color:var(--txt-4, #9CA3AF);background:var(--sup-2, #F3F4F6);padding:2px 7px;border-radius:20px;text-transform:uppercase;letter-spacing:.4px;}
+    .sidebar-user{padding:14px 20px;border-top:1px solid var(--linea-2, #F3F4F6);display:flex;align-items:center;gap:10px;}
     .s-avatar{width:34px;height:34px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px;flex-shrink:0;overflow:hidden;}
     .s-avatar img{width:100%;height:100%;object-fit:cover;}
-    .user-info{flex:1;min-width:0;}.user-name{color:#111827;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.user-role{color:#6B7280;font-size:11px;}
-    .logout-btn{background:none;border:none;color:#9CA3AF;cursor:pointer;padding:4px;border-radius:4px;display:flex;}
+    .user-info{flex:1;min-width:0;}.user-name{color:var(--txt, #111827);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}.user-role{color:var(--txt-3, #6B7280);font-size:11px;}
+    .logout-btn{background:none;border:none;color:var(--txt-4, #9CA3AF);cursor:pointer;padding:4px;border-radius:4px;display:flex;}
     .logout-btn:hover{color:#EF4444;}
 
     .main{flex:1;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;}
-    .topbar{background:#fff;border-bottom:1px solid #E5E7EB;padding:0 28px;height:64px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
-    .menu-btn{display:none;background:none;border:none;cursor:pointer;color:#374151;padding:6px;border-radius:8px;}
-    .menu-btn:hover{background:#F3F4F6;}
-    .topbar-title{font-size:17px;font-weight:800;color:#111827;flex:1;}
+    .topbar{background:var(--sup, #fff);border-bottom:1px solid var(--linea, #E5E7EB);padding:0 28px;height:64px;display:flex;align-items:center;gap:14px;flex-shrink:0;}
+    .menu-btn{display:none;background:none;border:none;cursor:pointer;color:var(--txt-2, #374151);padding:6px;border-radius:8px;}
+    .menu-btn:hover{background:var(--sup-2, #F3F4F6);}
+    .topbar-title{font-size:17px;font-weight:800;color:var(--txt, #111827);flex:1;}
 
     /* Cabecera del coach */
-    .chat-head{display:flex;align-items:center;gap:12px;padding:16px 28px;background:#fff;border-bottom:1px solid #E5E7EB;flex-shrink:0;}
+    .chat-head{display:flex;align-items:center;gap:12px;padding:16px 28px;background:var(--sup, #fff);border-bottom:1px solid var(--linea, #E5E7EB);flex-shrink:0;}
     .ch-avatar{position:relative;width:46px;height:46px;border-radius:50%;background:var(--indigo);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;}
     .ch-avatar img{width:100%;height:100%;object-fit:cover;}
     .ch-dot{position:absolute;bottom:1px;right:1px;width:11px;height:11px;border-radius:50%;background:var(--green);border:2px solid #fff;}
-    .ch-name{font-size:16px;font-weight:800;color:#111827;}
-    .ch-status{font-size:12px;color:#6B7280;margin-top:2px;display:flex;align-items:center;gap:5px;}
+    .ch-name{font-size:16px;font-weight:800;color:var(--txt, #111827);}
+    .ch-status{font-size:12px;color:var(--txt-3, #6B7280);margin-top:2px;display:flex;align-items:center;gap:5px;}
     .ch-status .live{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;}
 
     /* Zona de mensajes */
-    .chat-body{flex:1;overflow-y:auto;padding:22px 0;background:#F1F2F5;}
+    .chat-body{flex:1;overflow-y:auto;padding:22px 0;background:var(--sup-2, #F1F2F5);}
     .chat-inner{max-width:760px;margin:0 auto;padding:0 24px;display:flex;flex-direction:column;gap:2px;}
-    .sep{text-align:center;font-size:11px;color:#9CA3AF;font-weight:600;margin:14px 0 8px;}
+    .sep{text-align:center;font-size:11px;color:var(--txt-4, #9CA3AF);font-weight:600;margin:14px 0 8px;}
     .msg{display:flex;flex-direction:column;max-width:74%;margin-bottom:2px;}
     .msg.them{align-items:flex-start;align-self:flex-start;}
     .msg.me{align-items:flex-end;align-self:flex-end;}
-    .msg-sender{font-size:11px;color:#9CA3AF;font-weight:600;margin:6px 2px 3px;}
+    .msg-sender{font-size:11px;color:var(--txt-4, #9CA3AF);font-weight:600;margin:6px 2px 3px;}
     .bubble{padding:11px 15px;border-radius:16px;font-size:14.5px;line-height:1.45;word-wrap:break-word;white-space:pre-wrap;}
-    .msg.them .bubble{background:#fff;color:#1F2937;border:1px solid #EAECEF;border-bottom-left-radius:5px;}
+    .msg.them .bubble{background:var(--sup, #fff);color:var(--txt, #1F2937);border:1px solid var(--linea, #EAECEF);border-bottom-left-radius:5px;}
     .msg.me .bubble{background:var(--indigo);color:#fff;border-bottom-right-radius:5px;}
     /* Adjuntos que manda el coach */
     .adj-img{display:block;max-width:min(260px,72vw);max-height:280px;border-radius:14px;object-fit:cover;}
-    .adj-file{display:inline-flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid #EAECEF;
-      border-radius:14px;background:#fff;text-decoration:none;color:#1F2937;max-width:min(280px,78vw);}
+    .adj-file{display:inline-flex;align-items:center;gap:10px;padding:11px 14px;border:1px solid var(--linea, #EAECEF);
+      border-radius:14px;background:var(--sup, #fff);text-decoration:none;color:var(--txt, #1F2937);max-width:min(280px,78vw);}
     .msg.me .adj-file{background:var(--indigo);border-color:transparent;color:#fff;}
-    .adj-file .ic{width:32px;height:32px;border-radius:9px;background:#FEF2F2;color:#DC2626;display:flex;
+    .adj-file .ic{width:32px;height:32px;border-radius:9px;background:var(--roj-tenue, #FEF2F2);color:#DC2626;display:flex;
       align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:800;}
     .adj-file .nm{display:block;font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .adj-file .sz{font-size:11.5px;opacity:.65;}
     /* Adjuntar, igual que en el panel del coach */
-    .btn-clip{width:42px;height:42px;border-radius:50%;border:1px solid #E5E7EB;background:#fff;
-      color:#6B7280;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    .btn-clip{width:42px;height:42px;border-radius:50%;border:1px solid var(--linea, #E5E7EB);background:var(--sup, #fff);
+      color:var(--txt-3, #6B7280);cursor:pointer;display:flex;align-items:center;justify-content:center;
       flex-shrink:0;transition:.15s;padding:0;}
-    .btn-clip:hover{border-color:var(--indigo);color:var(--indigo);}
+    .btn-clip:hover{border-color:var(--indigo-txt);color:var(--indigo-txt);}
     .btn-clip:disabled{opacity:.5;cursor:progress;}
     .adj-previo{display:flex;align-items:center;gap:10px;max-width:760px;margin:0 auto 8px;
-      padding:8px 12px;background:#EEF2FF;border-radius:10px;font-size:13px;color:#3730A3;}
-    .adj-previo button{margin-left:auto;background:none;border:none;color:#6B7280;cursor:pointer;
+      padding:8px 12px;background:var(--ind-tenue, #EEF2FF);border-radius:10px;font-size:13px;color:#3730A3;}
+    .adj-previo button{margin-left:auto;background:none;border:none;color:var(--txt-3, #6B7280);cursor:pointer;
       font-size:17px;line-height:1;padding:0 4px;}
     /* Cuando el coach le ha desactivado el chat: se dice, en vez de dejar un
        cuadro de escribir que no lleva a ninguna parte. */
-    .chat-off{max-width:760px;margin:0 auto;padding:11px 14px;background:#FEF2F2;border:1px solid #FECACA;
+    .chat-off{max-width:760px;margin:0 auto;padding:11px 14px;background:var(--roj-tenue, #FEF2F2);border:1px solid var(--roj-borde, #FECACA);
       border-radius:10px;font-size:13px;color:#B91C1C;}
-    .msg-time{font-size:10.5px;color:#9CA3AF;margin:3px 3px 0;}
-    .chat-empty{text-align:center;color:#9CA3AF;font-size:14px;padding:60px 20px;}
+    .msg-time{font-size:10.5px;color:var(--txt-4, #9CA3AF);margin:3px 3px 0;}
+    .chat-empty{text-align:center;color:var(--txt-4, #9CA3AF);font-size:14px;padding:60px 20px;}
     .chat-empty svg{opacity:.4;margin-bottom:12px;}
 
     /* Barra de escritura */
-    .composer{flex-shrink:0;background:#fff;border-top:1px solid #E5E7EB;padding:14px 24px;}
+    .composer{flex-shrink:0;background:var(--sup, #fff);border-top:1px solid var(--linea, #E5E7EB);padding:14px 24px;}
     .composer-inner{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:10px;}
-    .composer input{flex:1;padding:13px 18px;border:1px solid #E5E7EB;border-radius:26px;font-size:14.5px;color:#111;outline:none;font-family:inherit;background:#F3F4F6;}
-    .composer input:focus{border-color:var(--indigo);background:#fff;}
+    .composer input{flex:1;padding:13px 18px;border:1px solid var(--linea, #E5E7EB);border-radius:26px;font-size:14.5px;color:var(--txt, #111);outline:none;font-family:inherit;background:var(--sup-2, #F3F4F6);}
+    .composer input:focus{border-color:var(--indigo-txt);background:var(--sup, #fff);}
     .send-btn{width:46px;height:46px;border-radius:50%;border:none;background:var(--indigo);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s;}
     .send-btn:hover{background:var(--indigo-dark);}
     .send-btn:disabled{opacity:.5;cursor:default;}
@@ -109,28 +109,28 @@
        dentro, le llegaban los mensajes y no tenía por dónde entrar. */
     .chat-wrap{flex:1;display:flex;min-height:0;overflow:hidden;}
     .chat-pane{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;}
-    .convcol{width:290px;min-width:290px;background:#fff;border-right:1px solid #E5E7EB;display:flex;flex-direction:column;overflow:hidden;}
-    .conv-search{padding:12px 14px;border-bottom:1px solid #EEF0F3;}
-    .conv-search input{width:100%;padding:9px 12px;border:1px solid #E5E7EB;border-radius:9px;font-size:13.5px;outline:none;font-family:inherit;background:#F8FAFC;color:#111;}
-    .conv-search input:focus{border-color:var(--indigo);background:#fff;}
+    .convcol{width:290px;min-width:290px;background:var(--sup, #fff);border-right:1px solid var(--linea, #E5E7EB);display:flex;flex-direction:column;overflow:hidden;}
+    .conv-search{padding:12px 14px;border-bottom:1px solid var(--linea-2, #EEF0F3);}
+    .conv-search input{width:100%;padding:9px 12px;border:1px solid var(--linea, #E5E7EB);border-radius:9px;font-size:13.5px;outline:none;font-family:inherit;background:var(--fondo-app, #F8FAFC);color:var(--txt, #111);}
+    .conv-search input:focus{border-color:var(--indigo-txt);background:var(--sup, #fff);}
     .conv-list{flex:1;overflow-y:auto;}
-    .conv-item{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;border-bottom:1px solid #F5F6F8;}
-    .conv-item:hover{background:#F8FAFC;}
+    .conv-item{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;border-bottom:1px solid var(--linea-2, #F5F6F8);}
+    .conv-item:hover{background:var(--fondo-app, #F8FAFC);}
     .conv-item.active{background:var(--indigo-pale);}
     .conv-avatar{width:40px;height:40px;border-radius:50%;background:var(--indigo);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;flex-shrink:0;overflow:hidden;}
     .conv-avatar img{width:100%;height:100%;object-fit:cover;}
-    .conv-avatar.grupo{background:var(--green-pale);color:var(--green);font-size:17px;}
+    .conv-avatar.grupo{background:var(--green-pale);color:var(--green-txt);font-size:17px;}
     .conv-info{flex:1;min-width:0;}
-    .conv-name{font-size:13.5px;font-weight:700;color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-    .conv-last{font-size:12px;color:#6B7280;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+    .conv-name{font-size:13.5px;font-weight:700;color:var(--txt, #111827);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .conv-last{font-size:12px;color:var(--txt-3, #6B7280);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
     .conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;}
-    .conv-time{font-size:10.5px;color:#9CA3AF;}
+    .conv-time{font-size:10.5px;color:var(--txt-4, #9CA3AF);}
     .conv-badge{min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#DC2626;color:#fff;font-size:10px;font-weight:700;line-height:18px;text-align:center;}
-    .conv-empty{padding:26px 18px;text-align:center;color:#9CA3AF;font-size:13px;line-height:1.5;}
+    .conv-empty{padding:26px 18px;text-align:center;color:var(--txt-4, #9CA3AF);font-size:13px;line-height:1.5;}
     /* En el móvil no caben las dos columnas, y la que no puede desaparecer es
        la de escribir: la lista se abre por encima con este botón. */
-    .btn-lista{display:none;background:none;border:none;color:#374151;cursor:pointer;padding:6px;border-radius:8px;margin-right:2px;position:relative;}
-    .btn-lista:hover{background:#F3F4F6;}
+    .btn-lista{display:none;background:none;border:none;color:var(--txt-2, #374151);cursor:pointer;padding:6px;border-radius:8px;margin-right:2px;position:relative;}
+    .btn-lista:hover{background:var(--sup-2, #F3F4F6);}
     .btn-lista .punto{position:absolute;top:3px;right:3px;width:8px;height:8px;border-radius:50%;background:#DC2626;display:none;}
     .conv-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:170;}
     .conv-overlay.open{display:block;}
@@ -160,10 +160,10 @@
     }
     /* Un aviso sonoro que no se puede callar se acaba callando cerrando la
        pestaña, y entonces se pierde el chat entero. */
-    .btn-sonido{margin-left:auto;width:36px;height:36px;border-radius:50%;border:1px solid #E5E7EB;
-      background:#fff;color:#6B7280;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    .btn-sonido{margin-left:auto;width:36px;height:36px;border-radius:50%;border:1px solid var(--linea, #E5E7EB);
+      background:var(--sup, #fff);color:var(--txt-3, #6B7280);cursor:pointer;display:flex;align-items:center;justify-content:center;
       flex-shrink:0;transition:.15s;padding:0;}
-    .btn-sonido:hover{border-color:var(--indigo);color:var(--indigo);}
+    .btn-sonido:hover{border-color:var(--indigo-txt);color:var(--indigo-txt);}
     .btn-sonido.mudo{color:#C6CAD1;}
   </style>
 <script src="js/aviso-chat.js"></script>
@@ -171,6 +171,8 @@
 <script src="js/nav-roles.js"></script>
 <link rel="stylesheet" href="css/nav-cliente.css">
 <script src="js/nav-cliente.js"></script>
+<link rel="stylesheet" href="css/tema-cliente.css">
+<script src="js/tema-cliente.js"></script>
 </head>
 <body>
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
