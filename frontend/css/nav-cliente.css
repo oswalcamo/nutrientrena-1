@@ -23,8 +23,8 @@
   right: 0;
   bottom: 0;
   z-index: 190;
-  background: #fff;
-  border-top: 1px solid #EBEDF0;
+  background: var(--sup, #fff);
+  border-top: 1px solid var(--linea, #EBEDF0);
   /* La barra de gestos del iPhone se come el borde de abajo: sin esto, el
      último milímetro de los iconos queda debajo de ella. */
   padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -45,7 +45,7 @@
   justify-content: center;
   gap: 3px;
   padding: 6px 2px 7px;
-  color: #9095A1;
+  color: var(--txt-4, #9095A1);
   text-decoration: none;
   font-size: 10.5px;
   font-weight: 600;
@@ -68,7 +68,9 @@
 }
 
 .nav-abajo a.sel {
-  color: var(--indigo, #4F46E5);
+  /* El de TEXTO, no el de relleno: el índigo que se lee en blanco sobre sí
+     mismo da 2.77:1 escrito sobre la barra oscura. */
+  color: var(--indigo-txt, #4F46E5);
 }
 
 /* La rayita bajo la pestaña abierta. Va debajo del texto y no encima del

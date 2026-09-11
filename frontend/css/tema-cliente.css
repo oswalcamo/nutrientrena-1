@@ -1,0 +1,150 @@
+/* Modo noche para las pantallas del cliente.
+
+   Las ocho páginas tenían 974 colores escritos a fuego. No se han reescrito a
+   mano una por una: 79 valores distintos, y los ocho más repetidos —el blanco
+   de las tarjetas, el gris del borde, los tres grises del texto— son ~700 de
+   ellos y significan siempre lo mismo. Esos se han cambiado por tokens con su
+   valor de siempre como respaldo:
+
+       background:#fff   →   background:var(--sup, #fff)
+
+   Así, si este fichero no llega a cargarse, la página se ve exactamente igual
+   que antes en vez de quedarse en blanco. Y el modo noche es cambiar aquí un
+   puñado de valores en vez de tocar novecientas declaraciones.
+
+   El blanco NO se cambió en todas partes, solo donde es una SUPERFICIE. Un
+   `color:#fff` es texto encima de algo de color —un botón índigo, una píldora
+   ámbar, un avatar— y ahí sigue siendo blanco de noche. Confundir las dos
+   cosas deja letras oscuras sobre fondo índigo, ilegibles.
+
+   Los colores de marca —índigo, verde, ámbar, rojo— no cambian: son los que
+   hacen que la aplicación siga siendo la misma con la luz apagada. Lo que
+   cambia son sus FONDOS tenues, que en claro son casi blancos y de noche
+   tienen que ser casi negros o iluminan la pantalla entera. */
+
+:root {
+  /* Superficies */
+  --sup: #fff;            /* tarjeta, barra lateral, barra superior */
+  --sup-2: #F3F4F6;       /* relleno suave: pastillas, cabeceras de tabla */
+  --sup-3: #F9FAFB;       /* el más tenue de todos */
+  --sup-4: #D1D5DB;       /* el relleno con cuerpo: iconos apagados */
+  --fondo-app: #F8FAFC;   /* el fondo de la página */
+
+  /* Texto, de más a menos peso */
+  --txt: #111827;
+  --txt-2: #374151;
+  --txt-3: #6B7280;
+  --txt-4: #9CA3AF;
+
+  /* Líneas */
+  --linea: #E5E7EB;
+  --linea-2: #EEF0F3;
+
+  /* Fondos tenues de color. En claro son casi blancos; de noche, casi negros
+     con el tinte justo para que se note de qué color hablan. */
+  --ind-tenue: #EEF2FF;
+  --ver-tenue: #ECFDF5;
+  --amb-tenue: #FFFBEB;
+  --roj-tenue: #FEF2F2;
+
+  /* El acento cuando hace de TEXTO. En claro es el mismo de siempre; de noche
+     se aclara, porque sobre su propio tinte oscuro el original no se lee. */
+  --indigo-txt: #4F46E5;
+  --green-txt: #059669;
+  --amber-txt: #F59E0B;
+  --red-txt: #DC2626;
+
+  /* El borde de una tarjeta con tinte va a juego con su fondo. */
+  --ind-borde: #C7D2FE;
+  --ver-borde: #A7F3D0;
+  --amb-borde: #FCE3BE;
+  --roj-borde: #FECACA;
+
+  --sombra-card: 0 1px 2px rgba(16, 24, 40, .04);
+}
+
+/* ── La noche ───────────────────────────────────────────────────────────────
+   Un azul muy oscuro, no un negro puro: sobre negro puro los bordes finos
+   desaparecen y todo queda flotando sin forma. */
+html[data-tema="noche"] {
+  --sup: #161A24;
+  --sup-2: #1E2431;
+  --sup-3: #1A1F2B;
+  --sup-4: #2F3646;
+  --fondo-app: #0E1118;
+
+  --txt: #EDEFF3;
+  --txt-2: #C3C9D4;
+  --txt-3: #98A0AE;
+  --txt-4: #949CAC;   /* 6.30:1 sobre la tarjeta, 5.63 sobre el relleno */
+
+  --linea: #262D3B;
+  --linea-2: #222835;
+
+  --ind-tenue: #1D2140;
+  --ver-tenue: #10261D;
+  --amb-tenue: #2A2113;
+  --roj-tenue: #2A1618;
+
+  --ind-borde: #333A66;
+  --ver-borde: #1D4433;
+  --amb-borde: #513C1A;
+  --roj-borde: #4A2426;
+
+  /* Una sombra clara no se ve sobre fondo oscuro: lo que da relieve de noche
+     es el borde, así que la sombra se apaga en vez de dejar un halo sucio. */
+  --sombra-card: none;
+
+  /* Estos dos los define cada página en su propio :root. Se pisan desde aquí
+     —un selector con atributo gana a `:root` a secas— para no tener que
+     tocar las ocho. */
+  --gray-bg: #0E1118;
+  --indigo-pale: #1D2140;
+  --green-pale: #10261D;
+
+  /* Los acentos NO se tocan: como relleno, con letra blanca encima, el índigo
+     de siempre da 6.3:1 y aclararlo lo empeoraba (3.85:1). Lo que se separa es
+     su OTRO papel —el mismo color usado como texto sobre su propio tinte—, que
+     ahí da 2.49:1 y no hay un solo valor que sirva para los dos. Medido, no
+     supuesto: ver `--*-txt` abajo. */
+  --indigo-txt: #8B91F5;
+  --green-txt: #34D399;
+  --amber-txt: #FBBF24;
+  --red-txt: #F87171;
+
+  color-scheme: dark;
+}
+
+/* Lo que no se puede tokenizar sin reescribir cada página: los fondos tenues
+   de color puestos a fuego en un puñado de sitios. Son pocos y concretos. */
+html[data-tema="noche"] body { background: var(--fondo-app); }
+
+/* ── El botón de encender y apagar ──────────────────────────────────────────
+   Vive en la barra de arriba, al lado de la campana, que es donde lo puso el
+   prototipo. Lo pinta js/tema-cliente.js en las ocho páginas. */
+.btn-tema {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--linea, #E5E7EB);
+  background: var(--sup, #fff);
+  color: var(--txt-2, #374151);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-tema:hover {
+  border-color: var(--indigo, #4F46E5);
+  color: var(--indigo, #4F46E5);
+}
+
+@media (min-width: 769px) {
+  .btn-tema { width: 38px; height: 38px; }
+}
