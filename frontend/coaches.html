@@ -62,29 +62,76 @@
     .content{flex:1;overflow-y:auto;padding:28px;}
     .content::-webkit-scrollbar{width:6px;}
     .content::-webkit-scrollbar-thumb{background:#D1D5DB;border-radius:3px;}
-    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;}
+    /* ── Cabecera de la página ──────────────────────────────────────────────
+       Va DENTRO del contenido y no en la barra de arriba: así el título, el
+       recuento y el botón de añadir se leen como una sola cosa, que es como
+       está en el prototipo. */
+    .pg-cab{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;}
+    .pg-sobre{font-size:11px;font-weight:700;color:#9CA3AF;letter-spacing:.9px;text-transform:uppercase;}
+    .pg-cab h1{font-size:30px;font-weight:800;color:#111827;margin:4px 0 0;line-height:1.15;}
+    .pg-cab .pg-sub{font-size:13.5px;color:#6B7280;margin-top:6px;}
 
-    .member-card{background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);padding:24px;display:flex;flex-direction:column;gap:14px;position:relative;}
-    .member-card:hover{box-shadow:0 4px 14px rgba(0,0,0,.1);}
+    /* ── Las cuatro cifras de arriba ────────────────────────────────────────*/
+    .res-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:22px;}
+    .res-card{background:#fff;border:1px solid #EDEFF3;border-radius:14px;padding:18px 20px;}
+    .res-ico{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+    .res-ico.ind{background:#EEF2FF;color:#4F46E5;}
+    .res-ico.amb{background:#FEF3C7;color:#D97706;}
+    .res-v{font-size:26px;font-weight:800;color:#111827;line-height:1.1;}
+    .res-l{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.6px;text-transform:uppercase;margin-top:6px;}
+    .res-n{font-size:12px;color:#9CA3AF;margin-top:3px;}
 
-    .card-avatar{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;color:#fff;margin:0 auto 4px;}
-    .card-head{text-align:center;}
-    .card-name{font-size:16px;font-weight:700;color:#111;}
-    .card-role-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;margin:4px 0;}
-    .card-email{font-size:12px;color:#6B7280;}
-    .card-stats{font-size:12px;color:#6B7280;margin-top:2px;}
+    /* ── Filtro por oficio ──────────────────────────────────────────────────*/
+    .flt{display:flex;align-items:center;gap:9px;margin-bottom:18px;flex-wrap:wrap;}
+    .flt-chip{padding:7px 16px;border-radius:20px;border:1px solid #E5E7EB;background:#fff;color:#6B7280;
+      font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;}
+    .flt-chip:hover{border-color:#C7D2FE;color:#4F46E5;}
+    .flt-chip.on{background:#4F46E5;border-color:#4F46E5;color:#fff;}
+    .flt-cuenta{margin-left:auto;font-size:12px;color:#9CA3AF;}
 
-    .salary-box{background:#F9FAFB;border-radius:8px;padding:10px 14px;display:flex;flex-direction:column;gap:6px;}
-    .salary-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px;}
+
+    .member-card{background:#fff;border:1px solid #EDEFF3;border-radius:14px;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+    .member-card:hover{box-shadow:0 4px 16px rgba(16,24,40,.07);}
+
+    /* Cabecera: la foto al LADO del nombre, no encima. Con el avatar centrado
+       arriba, la tarjeta gastaba una fila entera en decir quién es. */
+    .card-head{display:flex;align-items:center;gap:13px;padding:16px 18px;}
+    .card-avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:15px;color:#fff;flex-shrink:0;overflow:hidden;}
+    .card-avatar img{width:100%;height:100%;object-fit:cover;}
+    .card-id{min-width:0;flex:1;}
+    .card-name{font-size:15.5px;font-weight:800;color:#111827;display:flex;align-items:center;gap:7px;}
+    /* El punto dice que la cuenta está activa. Solo se pinta cuando lo está:
+       un punto que sale siempre no informa de nada. */
+    .card-dot{width:7px;height:7px;border-radius:50%;background:#4F46E5;flex-shrink:0;}
+    .card-role-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-top:5px;}
+
+    .card-datos{padding:0 18px 14px;display:flex;flex-direction:column;gap:7px;}
+    .card-dato{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#6B7280;}
+    .card-dato svg{flex-shrink:0;color:#9CA3AF;}
+    .card-dato b{color:#374151;font-weight:700;}
+
+    .salary-box{border-top:1px solid #F1F3F6;padding:13px 18px;display:flex;flex-direction:column;gap:7px;}
+    .salary-row{display:flex;justify-content:space-between;align-items:baseline;font-size:13px;gap:10px;}
     .salary-label{color:#6B7280;}
-    .salary-val{font-weight:600;color:#111;}
-    .salary-val.total{color:#EF4444;}
+    .salary-val{font-weight:700;color:#111827;white-space:nowrap;}
+    .salary-val .mes{font-weight:600;color:#9CA3AF;font-size:12px;}
+    .salary-val.total{color:#4F46E5;font-size:16px;}
     .salary-val.commission{color:#F59E0B;}
+    .salary-row.total .salary-label{font-size:11px;font-weight:700;color:#6B7280;letter-spacing:.5px;text-transform:uppercase;}
 
-    .card-notes{background:#EFF6FF;border-left:3px solid #93C5FD;border-radius:0 6px 6px 0;padding:8px 12px;font-size:12px;color:#374151;font-style:italic;line-height:1.5;}
+    .card-notes{margin:0 18px 16px;background:#F8F9FB;border:1px solid #EDEFF3;border-radius:9px;padding:10px 12px;font-size:12px;color:#6B7280;font-style:italic;line-height:1.5;}
 
-    .card-actions{display:flex;gap:8px;margin-top:2px;}
-    .card-actions .btn{flex:1;justify-content:center;}
+    /* Pie con dos acciones, partido por la mitad como en el prototipo. */
+    .card-actions{display:flex;border-top:1px solid #F1F3F6;margin-top:auto;}
+    .card-act{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:13px 8px;
+      background:none;border:none;border-right:1px solid #F1F3F6;font-family:inherit;font-size:12.5px;
+      font-weight:700;color:#6B7280;cursor:pointer;white-space:nowrap;}
+    .card-act:last-child{border-right:none;}
+    .card-act:hover{background:#F8F9FB;color:#4F46E5;}
+    .card-act.cli{color:#D97706;}
+    .card-act.cli:hover{color:#B45309;}
+    .card-act svg{flex-shrink:0;}
     /* Client mini-panel inside card */
     .card-clients{border-top:1px solid #F3F4F6;padding-top:10px;cursor:pointer;}
     .card-clients:hover .cc-label{color:var(--purple);}
@@ -400,22 +447,29 @@
 <!-- Main -->
 <div class="main">
   <div class="topbar">
-    <div class="topbar-left">
-      <h1>Equipo</h1>
-      <p>Coaches, nutricionistas y colaboradores</p>
-    </div>
+    <div class="topbar-left"></div>
     <div class="topbar-right">
-      <div class="cost-chip">Coste equipo/mes: <span id="totalCost">0€</span>
-        <span id="topbarRoleBadge" style="font-size:11px;font-weight:700;color:#4F46E5;background:#EEF2FF;padding:3px 10px;border-radius:20px;white-space:nowrap;"></span>
+      <span id="topbarRoleBadge" style="font-size:11px;font-weight:700;color:#4F46E5;background:#EEF2FF;padding:3px 10px;border-radius:20px;white-space:nowrap;"></span>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="pg-cab">
+      <div>
+        <div class="pg-sobre">Coaches y colaboradores</div>
+        <h1>Equipo</h1>
+        <div class="pg-sub" id="pgSub">—</div>
       </div>
       <button id="btnAddMember" class="btn btn-primary" onclick="openModal()">
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Añadir miembro
       </button>
     </div>
-  </div>
 
-  <div class="content">
+    <div class="res-grid" id="resGrid"></div>
+
+    <div class="flt" id="flt"></div>
+
     <div class="cards-grid" id="cardsGrid"></div>
   </div>
 </div>
@@ -657,6 +711,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
+function _esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 const API = API_BASE;
 const token = localStorage.getItem('token');
 if(!token){ location.href='login.html'; }
@@ -720,7 +775,10 @@ function avatarColor(name){
   let h=0; for(let i=0;i<(name||'').length;i++) h=(h*31+name.charCodeAt(i))&0xffffffff;
   return AVATAR_COLORS[Math.abs(h)%AVATAR_COLORS.length];
 }
-function fmt(n){ return n!=null?`${Number(n).toLocaleString('es-ES')}€/mes`:'—'; }
+function eur(n){ return n!=null?`${Number(n).toLocaleString('es-ES')}€`:'—'; }
+/* Con el "/mes" ya pegado. Se conserva porque lo usan el formulario y los
+   avisos, donde la cifra va suelta dentro de una frase. */
+function fmt(n){ return n!=null?`${eur(n)}/mes`:'—'; }
 function fmtPlus(n){ return n!=null&&n>0?`+${Number(n).toLocaleString('es-ES')}€`:null; }
 
 function toast(msg,type='success'){
@@ -767,73 +825,204 @@ async function loadStaff(){
   }catch{}
 }
 
+/* ── Los oficios ──────────────────────────────────────────────────────────
+   El color de la pastilla sale del oficio que escribió el coach, no de un
+   catálogo cerrado: `role_label` es texto libre. Se reconoce por lo que
+   contiene, y cualquier otra cosa cae en el gris de siempre en vez de
+   quedarse sin pastilla. */
+const OFICIOS = [
+  { clave: 'entrenador', prueba: /entrena|coach\s*personal/i, bg: '#EEF2FF', fg: '#4F46E5',
+    ico: '<path d="M6.5 6.5 17.5 17.5M4 12l-1.5 1.5a2.12 2.12 0 0 0 3 3L7 18M17 6l1-1a2.12 2.12 0 0 1 3 3l-1 1"/><path d="m8 8 8 8"/>' },
+  { clave: 'nutricionista', prueba: /nutri/i, bg: '#FEF3C7', fg: '#B45309',
+    ico: '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z"/><path d="M6 2v2M10 2v2M14 2v2"/>' },
+  { clave: 'coach mixto', prueba: /mixto|h[ií]brido/i, bg: '#EDE9FE', fg: '#6D28D9',
+    ico: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>' },
+];
+function oficioDe(label){
+  return OFICIOS.find(o => o.prueba.test(label || ''))
+      || { clave: null, bg: '#F3F4F6', fg: '#6B7280', ico: '<circle cx="12" cy="12" r="9"/>' };
+}
+function _pastilla(o, texto){
+  return '<span class="card-role-badge" style="background:' + o.bg + ';color:' + o.fg + '">'
+    + '<svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">' + o.ico + '</svg>'
+    + _esc(texto) + '</span>';
+}
+
+/* Qué filtro está puesto. null = todos. */
+let _fltOficio = null;
+function filtrarOficio(clave){ _fltOficio = clave || null; pintarEquipo(); }
+
+document.addEventListener('click', function(ev){
+  const chip = ev.target.closest && ev.target.closest('.flt-chip');
+  if (chip) filtrarOficio(chip.dataset.oficio || null);
+});
+
+/* ── Las cuatro cifras de arriba ──────────────────────────────────────────*/
+const IC_RES = {
+  gente: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  cartera: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  subida: '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>',
+  escudo: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
+};
+function _resCard(icono, tono, valor, etiqueta, nota){
+  return '<div class="res-card"><div class="res-ico ' + tono + '">'
+    + '<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">' + icono + '</svg></div>'
+    + '<div class="res-v">' + valor + '</div><div class="res-l">' + etiqueta + '</div>'
+    + (nota ? '<div class="res-n">' + nota + '</div>' : '') + '</div>';
+}
+
+function _tienePermisos(m){
+  if (!m.permissions) return false;
+  try {
+    const o = typeof m.permissions === 'string' ? JSON.parse(m.permissions) : m.permissions;
+    return !!o && Object.keys(o).length > 0;
+  } catch (e) { return false; }
+}
+
+function renderResumen(members){
+  const n = members.length;
+  const clientes = members.reduce((a, m) => a + (m.client_count || 0), 0);
+  const coste = members.reduce((a, m) => a + (m.salary_fijo || 0) + (m.commission || 0), 0);
+  const conPermisos = members.filter(_tienePermisos).length;
+  const pct = n ? Math.round(conPermisos * 100 / n) : 0;
+
+  document.getElementById('pgSub').textContent =
+    n + ' miembro' + (n !== 1 ? 's' : '') + ' activo' + (n !== 1 ? 's' : '')
+    + ' · ' + clientes + ' cliente' + (clientes !== 1 ? 's' : '')
+    + ' atendido' + (clientes !== 1 ? 's' : '') + ' en total';
+
+  document.getElementById('resGrid').innerHTML =
+      _resCard(IC_RES.gente, 'amb', n, 'Miembros')
+    + _resCard(IC_RES.cartera, 'ind', eur(coste), 'Coste mensual', 'Salarios + comisiones')
+    /* INGRESO/MIEMBRO se queda SIN cifra a propósito. No hay ningún registro
+       de cobros en el proyecto, y ya se tomó la misma decisión para el MRR de
+       las cuentas: "un plan asignado dice lo que se DEBERÍA pagar, no lo que
+       se ha pagado". Sumar las tarifas aquí sería enseñar dinero que nadie ha
+       ingresado, y justo en la pantalla donde se decide cuánto cobra la gente.
+       En cuanto haya cobros registrados, esta línea es lo único que cambia. */
+    + _resCard(IC_RES.subida, 'ind', '—', 'Ingreso/miembro', 'Sin registro de cobros')
+    + _resCard(IC_RES.escudo, 'amb', pct + '%', 'Permisos asignados',
+               pct === 100 ? 'Todos configurados' : conPermisos + ' de ' + n + ' configurados');
+}
+
+function renderFiltro(members){
+  const presentes = new Set(members.map(m => oficioDe(m.role_label).clave).filter(Boolean));
+  /* Solo los oficios que de verdad hay en el equipo. Una pastilla que siempre
+     deja la lista vacía no es un filtro, es un callejón sin salida. */
+  const chips = [{ clave: null, texto: 'Todos' }].concat(
+    OFICIOS.filter(o => presentes.has(o.clave)).map(o => ({
+      clave: o.clave, texto: o.clave.charAt(0).toUpperCase() + o.clave.slice(1) })));
+  const visibles = members.filter(m => !_fltOficio || oficioDe(m.role_label).clave === _fltOficio).length;
+
+  /* El oficio viaja en un `data-`, no dentro del onclick: "coach mixto" lleva
+     un espacio y, metido entre comillas dobles dentro del atributo, cortaba el
+     propio atributo y el filtro dejaba de responder. El clic se atiende por
+     delegación, que además sobrevive a repintar la lista. */
+  document.getElementById('flt').innerHTML =
+    chips.map(c => '<button class="flt-chip' + (_fltOficio === c.clave ? ' on' : '') + '"'
+      + (c.clave ? ' data-oficio="' + _esc(c.clave) + '"' : '') + '>'
+      + c.texto + '</button>').join('')
+    + '<span class="flt-cuenta">' + visibles + ' de ' + members.length
+    + ' miembro' + (members.length !== 1 ? 's' : '') + '</span>';
+}
+
+/* Se guarda el equipo ENTERO y se pinta lo que el filtro deje pasar. Las
+   cifras de arriba son siempre del equipo completo: si se recalcularan con el
+   filtro puesto, la pantalla diría que la empresa gasta menos por haber
+   pulsado una pastilla. */
 function renderCards(members){
-  _teamData=members;
-  const grid=document.getElementById('cardsGrid');
-  grid.innerHTML='';
-  let total=0;
+  _teamData = members;
+  renderResumen(members);
+  pintarEquipo();
+}
 
-  members.forEach(m=>{
-    const name=`${m.name||''} ${m.last_name||''}`.trim();
-    const sum=(m.salary_fijo||0)+(m.commission||0);
-    total+=sum;
-    const color=avatarColor(name);
-    const avatarHtml=m.photo
-      ?`<img src="${m.photo}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;margin:0 auto 4px;display:block;">`
-      :`<div class="card-avatar" style="background:${color}">${initials(name)}</div>`;
+function pintarEquipo(){
+  const members = _teamData || [];
+  renderFiltro(members);
+  const grid = document.getElementById('cardsGrid');
+  grid.innerHTML = '';
 
-    const lbl=(m.role_label||'').toLowerCase();
-    let bg='#E0F2FE',fg='#0369A1';
-    if(lbl.includes('nutri')){bg='#DCFCE7';fg='#166534';}
-    else if(lbl.includes('coach')||lbl.includes('entrena')){bg='#CFFAFE';fg='#155E75';}
-    else if(lbl.includes('admin')){bg='#EDE9FE';fg='#5B21B6';}
+  members
+    .filter(m => !_fltOficio || oficioDe(m.role_label).clave === _fltOficio)
+    .forEach(m => {
+      const name = ((m.name || '') + ' ' + (m.last_name || '')).trim();
+      const sum = (m.salary_fijo || 0) + (m.commission || 0);
+      const o = oficioDe(m.role_label);
+      const safeName = name.replace(/'/g, "\\'");
+      const ud = m.user_detail_id ? "'" + m.user_detail_id + "'" : 'null';
+      const idArg = m.id === null ? 'null' : m.id;
 
-    const safeName=name.replace(/'/g,"\\'");
-    const card=document.createElement('div');
-    card.className='member-card';
-    card.innerHTML=`
-      <div class="card-menu">${_isAdminUser?`
-        <button class="icon-btn" onclick="editMember(${m.id===null?'null':m.id},'${m.user_detail_id}')" title="Editar">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        </button>
-        <button class="icon-btn" onclick="deleteMember(${m.id===null?'null':m.id},'${safeName}',${m.user_detail_id?`'${m.user_detail_id}'`:'null'})" title="Quitar del equipo / dar de baja">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-        </button>`:''}</div>
-      ${avatarHtml}
-      <div class="card-head">
-        <div class="card-name">${name}</div>
-        ${m.role_label?`<div class="card-role-badge" style="background:${bg};color:${fg}">${m.role_label}</div>`:''}
-        <div class="card-email">${m.email||''}</div>
-        <div class="card-stats">${m.client_count??0} clientes${m.hours_week?` · ${m.hours_week}h/sem`:''}</div>
-      </div>
-      <div class="salary-box">
-        ${m.salary_fijo!=null?`<div class="salary-row"><span class="salary-label">Salario fijo</span><span class="salary-val">${fmt(m.salary_fijo)}</span></div>`:''}
-        ${m.commission?`<div class="salary-row"><span class="salary-label">Comisión (est.)</span><span class="salary-val commission">${fmtPlus(m.commission)}</span></div>`:''}
-        ${sum?`<div class="salary-row"><span class="salary-label">Total estimado</span><span class="salary-val total">${fmt(sum)}</span></div>`:''}
-      </div>
-      ${m.notes?`<div class="card-notes">${m.notes}</div>`:''}
-      ${m.user_detail_id ? `
-      <div class="card-clients" id="clients_${m.user_detail_id}" onclick="openClientsDrawer('${safeName}','${m.user_detail_id}')">
-        <div class="cc-label">Clientes <span id="cc_count_${m.user_detail_id}"></span></div>
-        <div class="cc-loading" id="cc_body_${m.user_detail_id}">Cargando…</div>
-      </div>` : ''}
-      <div class="card-actions">
-        ${m.user_detail_id ? `<button class="btn btn-primary btn-sm" onclick="openClientsDrawer('${safeName}','${m.user_detail_id}')">Ver clientes</button>` : `<span style="font-size:12px;color:#9CA3AF;">Sin cuenta vinculada</span>`}
-      </div>
-    `;
-    grid.appendChild(card);
-  });
+      const avatarHtml = m.photo
+        ? '<div class="card-avatar"><img src="' + m.photo + '" alt=""></div>'
+        : '<div class="card-avatar" style="background:' + avatarColor(name) + '">' + initials(name) + '</div>';
 
-  if(_isAdminUser){
-    const addCard=document.createElement('div');
-    addCard.className='add-card'; addCard.onclick=()=>openModal();
-    addCard.innerHTML=`
-      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-      <span>Añadir miembro</span>`;
+      const menu = _isAdminUser
+        ? '<button class="icon-btn" onclick="editMember(' + idArg + ',\'' + m.user_detail_id + '\')" title="Editar">'
+          + '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>'
+          + '<button class="icon-btn" onclick="deleteMember(' + idArg + ',\'' + safeName + '\',' + ud + ')" title="Quitar del equipo / dar de baja">'
+          + '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg></button>'
+        : '';
+
+      const email = m.email
+        ? '<div class="card-dato"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>' + _esc(m.email) + '</div>'
+        : '';
+      const nClientes = m.client_count == null ? 0 : m.client_count;
+      const horas = m.hours_week
+        ? '<svg width="13" height="13" style="margin-left:8px" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><b>' + m.hours_week + '</b> h/sem'
+        : '';
+
+      const salario = (m.salary_fijo != null
+        ? '<div class="salary-row"><span class="salary-label">Salario fijo</span><span class="salary-val">' + eur(m.salary_fijo) + '<span class="mes">/mes</span></span></div>' : '')
+        + (m.commission
+        ? '<div class="salary-row"><span class="salary-label">Comisión (est.)</span><span class="salary-val commission">' + fmtPlus(m.commission) + '</span></div>' : '')
+        + (sum
+        ? '<div class="salary-row total"><span class="salary-label">Total estimado</span><span class="salary-val total">' + eur(sum) + '<span class="mes">/mes</span></span></div>' : '');
+
+      const verClientes = m.user_detail_id
+        ? '<button class="card-act cli" onclick="openClientsDrawer(\'' + safeName + '\',\'' + m.user_detail_id + '\')">'
+          + '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+          + 'Clientes (' + nClientes + ')</button>'
+        : '<span class="card-act" style="cursor:default;color:#C7CBD3;">Sin cuenta vinculada</span>';
+
+      const card = document.createElement('div');
+      card.className = 'member-card';
+      card.innerHTML =
+          '<div class="card-menu">' + menu + '</div>'
+        + '<div class="card-head">' + avatarHtml
+        + '<div class="card-id"><div class="card-name">' + _esc(name)
+        + (m.user_detail_id ? '<span class="card-dot" title="Cuenta activa"></span>' : '') + '</div>'
+        + (m.role_label ? _pastilla(o, m.role_label) : '') + '</div></div>'
+        + '<div class="card-datos">' + email
+        + '<div class="card-dato"><svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>'
+        + '<b>' + nClientes + '</b> cliente' + (nClientes !== 1 ? 's' : '') + horas + '</div></div>'
+        + '<div class="salary-box">' + salario + '</div>'
+        + (m.notes ? '<div class="card-notes">' + _esc(m.notes) + '</div>' : '')
+        + '<div class="card-actions">'
+        + '<button class="card-act" onclick="abrirPermisos(' + idArg + ',\'' + m.user_detail_id + '\')">'
+        + '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Permisos</button>'
+        + verClientes + '</div>';
+      grid.appendChild(card);
+    });
+
+  /* La tarjeta de añadir solo con la lista sin filtrar: colgada al final de un
+     filtro parece que va a crear un miembro DE ese oficio, y no es así. */
+  if (_isAdminUser && !_fltOficio) {
+    const addCard = document.createElement('div');
+    addCard.className = 'add-card';
+    addCard.onclick = () => openModal();
+    addCard.innerHTML =
+      '<svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>'
+      + '<span>Añadir miembro</span>';
     grid.appendChild(addCard);
   }
+}
 
-  document.getElementById('totalCost').textContent=`${Number(total).toLocaleString('es-ES')}€`;
+/* "Permisos" abre la ficha de siempre directamente en su pestaña: el panel de
+   permisos ya existía dentro del formulario de editar, solo que había que
+   llegar hasta él pasando por salario y horas. */
+function abrirPermisos(id, userDetailId){
+  editMember(id, userDetailId);
+  setTimeout(function(){ try { setTab(3); } catch (e) {} }, 0);
 }
 
 async function loadTeam(){
@@ -903,7 +1092,13 @@ async function loadTeam(){
     // Load clients for each coach in parallel (only those with a user_detail_id)
     const coachable=merged.filter(m=>m.user_detail_id);
     await Promise.all(coachable.map(m=>loadCoachClients(m.user_detail_id)));
-  }catch{ renderCards([]); }
+  }catch(e){
+    /* Un `catch` mudo aquí convertía cualquier fallo —de la red o del propio
+       pintado— en "el equipo está vacío", que es la respuesta más engañosa
+       posible: parece un dato y es un error. */
+    console.error('No se pudo montar el equipo:', e);
+    renderCards([]);
+  }
 }
 
 const AV_COLORS=['#4F46E5','#0891B2','#059669','#D97706','#DC2626','#7C3AED','#DB2777'];
@@ -1474,7 +1669,6 @@ const STATUS_COLORS={
   en_proceso:{bg:'#FEF3C7',fg:'#92400E'},
 };
 function _statusColor(s){return STATUS_COLORS[s]||{bg:'#F1F5F9',fg:'#475569'};}
-function _esc(s){if(s==null)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 async function openClientsDrawer(coachName,udId){
   _cmCoachUdId=udId;
