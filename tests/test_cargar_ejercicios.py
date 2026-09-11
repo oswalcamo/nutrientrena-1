@@ -174,6 +174,34 @@ def test_LO_QUE_NO_CABE_SE_AVISA_NO_SE_RECORTA(tmp_path):
     assert [(n, c) for n, c, _l, _t in no_caben] == [("Press banca", "material")], no_caben
 
 
+# ── Actualizar sin destruir ────────────────────────────────────────────────
+#
+# El fallo que lo motivó: "no puedo ver los vídeos". La carga actualiza por
+# nombre y escribía TODAS las columnas, así que una celda vacía del CSV ponía
+# None encima de un dato bueno. La fila de Burpees viene sin vídeo, y el
+# ejercicio que ya lo tenía lo perdió en silencio — el resumen contaba el
+# ejercicio como "actualizado", que es justo lo que era.
+
+def test_UNA_CELDA_VACIA_NO_BORRA_EL_VIDEO_QUE_YA_HABIA():
+    assert ce.se_pisa("https://player.mediadelivery.net/play/1/abc", None) is False
+
+
+def test_pero_un_valor_nuevo_si_manda():
+    """Para eso se vuelve a cargar el fichero."""
+    assert ce.se_pisa("https://viejo", "https://nuevo") is True
+
+
+def test_y_rellenar_un_hueco_tambien():
+    assert ce.se_pisa(None, "https://nuevo") is True
+
+
+def test_lo_mismo_vale_para_cualquier_columna():
+    """No es una excepción del vídeo: la descripción, la imagen y el material
+    se perdían igual si el CSV traía la celda en blanco."""
+    for antes in ["Tumbado en el banco…", "https://cdn/foto.png", "Barra, Banco"]:
+        assert ce.se_pisa(antes, None) is False, antes
+
+
 # ── Las recomendaciones, que vienen en una sola celda ──────────────────────
 
 def test_LA_FORMA_DE_LAS_99_FILAS():

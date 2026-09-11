@@ -335,6 +335,20 @@ def a_columnas(fila, mapa_imagenes, grupos_por_nombre):
     }
 
 
+def se_pisa(actual, nuevo):
+    """¿El valor del CSV debe sustituir al que ya hay?
+
+    Una celda VACÍA no es una orden de borrar. El CSV manda sobre lo que DICE,
+    no sobre lo que calla: la fila de Burpees viene sin vídeo, y eso significa
+    "no lo tengo", no "quítaselo". Antes se escribía None encima del dato bueno
+    y el ejercicio se quedaba sin vídeo sin que nadie lo contara.
+
+    Lo que sí pisa es un valor nuevo, aunque el de antes fuera distinto: para
+    eso se vuelve a cargar el fichero.
+    """
+    return not (nuevo is None and actual is not None)
+
+
 # ── Lo que toca la base ────────────────────────────────────────────────────
 
 def _contra_que_base():
@@ -573,7 +587,8 @@ def main():
                 actualizados += 1
                 if args.ejecutar:
                     for campo, valor in datos.items():
-                        setattr(ya, campo, valor)
+                        if se_pisa(getattr(ya, campo, None), valor):
+                            setattr(ya, campo, valor)
             else:
                 nuevos += 1
                 if args.ejecutar:
