@@ -2732,7 +2732,8 @@
           caja.innerHTML =
             '<iframe src="' +
             esc(s.src) +
-            '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
+            '" referrerpolicy="no-referrer"' +
+            ' allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>';
         } else if (s.kind === "file" && (!s.hls || canPlayHls())) {
           caja.innerHTML =
             '<video src="' +
@@ -3171,7 +3172,8 @@
             return (
               '<div class="ej-media"><iframe src="' +
               esc(s.src) +
-              '" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'
+              '" referrerpolicy="no-referrer"' +
+              ' allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe></div>'
             );
           if (s.kind === "file" && (!s.hls || canPlayHls()))
             return (
